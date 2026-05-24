@@ -185,22 +185,15 @@ export default function StencilCenterArea({
               <p className="text-xs text-muted-foreground/60">Selecione um estilo e ajuste os controles antes de gerar</p>
             </div>
 
-            {/* CTAs */}
+            {/* Trocar imagem */}
             <div className="flex gap-3 z-10">
-              <Button
-                onClick={onGenerate}
-                className="h-12 px-10 bg-primary hover:bg-primary/90 text-primary-foreground font-bold gap-2 shadow-[0_0_40px_rgba(52,211,153,0.3)] hover:shadow-[0_0_50px_rgba(52,211,153,0.4)] transition-all hover:scale-[1.02]"
-              >
-                <Wand2 className="w-5 h-5" />
-                Gerar Stencil
-              </Button>
               <Button
                 variant="outline"
                 onClick={onReplaceImage}
-                className="h-12 px-5 gap-2 border-border/50 hover:border-primary/30 hover:bg-primary/5"
+                className="h-10 px-5 gap-2 border-border/50 hover:border-primary/30 hover:bg-primary/5"
               >
                 <RefreshCw className="w-4 h-4" />
-                Trocar
+                Trocar imagem
               </Button>
             </div>
           </motion.div>
