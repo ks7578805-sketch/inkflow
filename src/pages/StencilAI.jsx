@@ -6,6 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Wand2, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import ContrastPreview from "@/components/stencil/ContrastPreview";
+import LayerSelector from "@/components/stencil/LayerSelector";
 import { cn } from "@/lib/utils";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import ReferenceCard from "@/components/stencil/ReferenceCard";
@@ -22,6 +23,7 @@ export default function StencilAI() {
   const [selectedVersion, setSelectedVersion] = useState(1);
   const [controlsOpen, setControlsOpen] = useState(false);
   const [contrastValue, setContrastValue] = useState(50);
+  const [layerCount, setLayerCount] = useState(2);
 
   const handleImageSuccess = useCallback((imageData) => {
     setImage(imageData);
@@ -114,7 +116,7 @@ export default function StencilAI() {
           </button>
           {controlsOpen && (
             <div className="p-4">
-              <ControlsContent image={image} contrastValue={contrastValue} onContrastChange={setContrastValue} />
+              <ControlsContent image={image} contrastValue={contrastValue} onContrastChange={setContrastValue} layerCount={layerCount} onLayerChange={setLayerCount} />
             </div>
           )}
         </div>
@@ -202,7 +204,7 @@ export default function StencilAI() {
             <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Controles</span>
           </div>
           <div className="p-4">
-            <ControlsContent image={image} contrastValue={contrastValue} onContrastChange={setContrastValue} />
+            <ControlsContent image={image} contrastValue={contrastValue} onContrastChange={setContrastValue} layerCount={layerCount} onLayerChange={setLayerCount} />
           </div>
         </div>
         <div className="sticky bottom-0 pt-1 pb-0.5">
@@ -269,7 +271,7 @@ export default function StencilAI() {
   );
 }
 
-function ControlsContent({ image, contrastValue, onContrastChange }) {
+function ControlsContent({ image, contrastValue, onContrastChange, layerCount, onLayerChange }) {
   const [values, setValues] = useState({ line: [50], simplify: [30] });
   const [activeColor, setActiveColor] = useState(0);
   const set = (key) => (val) => setValues(v => ({ ...v, [key]: val }));
@@ -288,6 +290,9 @@ function ControlsContent({ image, contrastValue, onContrastChange }) {
           <Slider value={ctrl.val} onValueChange={set(ctrl.key)} max={100} step={1} className="w-full" />
         </div>
       ))}
+
+      {/* Layer depth selector */}
+      <LayerSelector value={layerCount} onChange={onLayerChange} />
 
       {/* Contrast with live preview */}
       <ContrastPreview image={image} value={contrastValue} onChange={onContrastChange} />
