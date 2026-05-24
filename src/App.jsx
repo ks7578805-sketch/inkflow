@@ -26,8 +26,6 @@ import Clients from '@/pages/Clients';
 import FlashGallery from '@/pages/FlashGallery';
 import Finance from '@/pages/Finance';
 import Inventory from '@/pages/Inventory';
-import Compliance from '@/pages/Compliance';
-import Aftercare from '@/pages/Aftercare';
 import Analytics from '@/pages/Analytics';
 import Settings from '@/pages/Settings';
 
@@ -72,8 +70,6 @@ const AuthenticatedApp = () => {
           <Route path="/flash-gallery" element={<FlashGallery />} />
           <Route path="/finance" element={<Finance />} />
           <Route path="/inventory" element={<Inventory />} />
-          <Route path="/compliance" element={<Compliance />} />
-          <Route path="/aftercare" element={<Aftercare />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/settings" element={<Settings />} />
         </Route>

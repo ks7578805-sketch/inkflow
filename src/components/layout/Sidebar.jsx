@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Wand2, ScanEye, FolderKanban, CalendarDays,
-  Users, Image, DollarSign, Package, ShieldCheck, HeartPulse,
+  Users, Image, DollarSign, Package,
   BarChart3, Settings, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,8 +16,6 @@ const menuItems = [
   { icon: Image, label: "Galeria", path: "/flash-gallery" },
   { icon: DollarSign, label: "Financeiro", path: "/finance" },
   { icon: Package, label: "Estoque", path: "/inventory" },
-  { icon: ShieldCheck, label: "Documentação", path: "/compliance" },
-  { icon: HeartPulse, label: "Pós-atendimento", path: "/aftercare" },
   { icon: BarChart3, label: "Análises", path: "/analytics" },
   { icon: Settings, label: "Configurações", path: "/settings" },
 ];
