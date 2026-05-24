@@ -43,7 +43,7 @@ function ActionBtn({ icon: Icon, label, sublabel, disabled }) {
 }
 
 export default function StencilRightPanel({ hasResult, selectedVersion, setSelectedVersion, selectedStyle, isMobile = false }) {
-  const content = (
+  const content = (<>
       {/* Actions */}
       <div className="bg-card border border-border/50 rounded-xl flex-shrink-0">
         <div className="px-4 pt-3.5 pb-3 border-b border-border/30">
@@ -154,7 +154,7 @@ export default function StencilRightPanel({ hasResult, selectedVersion, setSelec
           </motion.div>
         )}
       </AnimatePresence>
-  );
+  </>);
 
   if (isMobile) return <div className="space-y-3">{content}</div>;
   return <aside className="w-[210px] flex-shrink-0 flex flex-col gap-3 overflow-y-auto min-h-0 pb-2 pl-0.5">{content}</aside>;
