@@ -34,28 +34,30 @@ export default function Clients() {
     <div className="min-h-screen">
       <Topbar title="Clientes" subtitle="CRM de clientes do estúdio" />
 
-      <div className="p-6 flex gap-6 h-[calc(100vh-64px)]">
+      <div className="p-3 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 md:h-[calc(100vh-64px)]">
         {/* List */}
-        <div className="flex-1 space-y-4 overflow-y-auto pb-6">
-          <div className="flex items-center gap-3">
+        <div className="flex-1 space-y-3 md:space-y-4 overflow-y-auto pb-6">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input placeholder="Buscar clientes..." className="pl-9 h-9 bg-secondary/50 text-sm" />
             </div>
-            <Tabs value={filter} onValueChange={setFilter}>
-              <TabsList className="bg-muted/30 h-9">
-                <TabsTrigger value="all" className="text-xs">Todos</TabsTrigger>
-                <TabsTrigger value="vip" className="text-xs">VIP</TabsTrigger>
-                <TabsTrigger value="active" className="text-xs">Ativos</TabsTrigger>
-                <TabsTrigger value="aftercare" className="text-xs">Aftercare</TabsTrigger>
-              </TabsList>
-            </Tabs>
-            <Button size="sm" className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5">
-              <Plus className="w-4 h-4" /> Novo
-            </Button>
+            <div className="flex gap-2">
+              <Tabs value={filter} onValueChange={setFilter} className="flex-1">
+                <TabsList className="bg-muted/30 h-9 w-full">
+                  <TabsTrigger value="all" className="text-xs flex-1">Todos</TabsTrigger>
+                  <TabsTrigger value="vip" className="text-xs flex-1">VIP</TabsTrigger>
+                  <TabsTrigger value="active" className="text-xs flex-1">Ativos</TabsTrigger>
+                </TabsList>
+              </Tabs>
+              <Button size="sm" className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shrink-0">
+                <Plus className="w-4 h-4" /><span className="hidden sm:inline">Novo</span>
+              </Button>
+            </div>
           </div>
 
-          <div className="bg-card border border-border/50 rounded-xl overflow-hidden">
+          {/* Desktop table */}
+          <div className="hidden md:block bg-card border border-border/50 rounded-xl overflow-hidden">
             <table className="w-full">
               <thead>
                 <tr className="bg-muted/30">
@@ -70,24 +72,14 @@ export default function Clients() {
               </thead>
               <tbody>
                 {clients.map((client) => (
-                  <tr
-                    key={client.id}
-                    className={cn(
-                      "border-t border-border/20 cursor-pointer transition-colors",
-                      selectedClient?.id === client.id ? "bg-primary/5" : "hover:bg-muted/20"
-                    )}
-                    onClick={() => setSelectedClient(client)}
-                  >
+                  <tr key={client.id} className={cn("border-t border-border/20 cursor-pointer transition-colors", selectedClient?.id === client.id ? "bg-primary/5" : "hover:bg-muted/20")} onClick={() => setSelectedClient(client)}>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                           <span className="text-[10px] font-bold text-primary">{client.name.split(" ").map(n => n[0]).join("")}</span>
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-foreground flex items-center gap-1.5">
-                            {client.name}
-                            {client.vip && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}
-                          </p>
+                          <p className="text-sm font-medium text-foreground flex items-center gap-1.5">{client.name}{client.vip && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}</p>
                           <p className="text-[11px] text-muted-foreground">{client.ig}</p>
                         </div>
                       </div>
@@ -96,28 +88,47 @@ export default function Clients() {
                     <td className="px-4 py-3 text-sm font-medium">{client.sessions}</td>
                     <td className="px-4 py-3 text-sm font-medium text-primary">{client.total}</td>
                     <td className="px-4 py-3 text-xs text-muted-foreground">{client.nextSession}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex gap-1 flex-wrap">
-                        {client.tags.map((tag) => (
-                          <span key={tag} className={cn("text-[10px] px-2 py-0.5 rounded-full border font-medium", tagColors[tag])}>
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <ChevronRight className="w-4 h-4 text-muted-foreground" />
-                    </td>
+                    <td className="px-4 py-3"><div className="flex gap-1 flex-wrap">{client.tags.map((tag) => <span key={tag} className={cn("text-[10px] px-2 py-0.5 rounded-full border font-medium", tagColors[tag])}>{tag}</span>)}</div></td>
+                    <td className="px-4 py-3"><ChevronRight className="w-4 h-4 text-muted-foreground" /></td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
+
+          {/* Mobile cards */}
+          <div className="md:hidden space-y-2">
+            {clients.map((client) => (
+              <div key={client.id} className={cn("bg-card border rounded-xl p-3.5 cursor-pointer transition-all active:scale-[0.99]", selectedClient?.id === client.id ? "border-primary/30 bg-primary/5" : "border-border/50")} onClick={() => setSelectedClient(client)}>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
+                    <span className="text-xs font-bold text-primary">{client.name.split(" ").map(n => n[0]).join("")}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-sm font-semibold text-foreground truncate">{client.name}</p>
+                      {client.vip && <Star className="w-3 h-3 text-amber-400 fill-amber-400 flex-shrink-0" />}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{client.ig}</p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-sm font-semibold text-primary">{client.total}</p>
+                    <p className="text-[10px] text-muted-foreground">{client.sessions} sessões</p>
+                  </div>
+                </div>
+                {client.tags.length > 0 && (
+                  <div className="flex gap-1 flex-wrap mt-2">
+                    {client.tags.map((tag) => <span key={tag} className={cn("text-[9px] px-2 py-0.5 rounded-full border font-medium", tagColors[tag])}>{tag}</span>)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Client Detail */}
         {selectedClient && (
-          <div className="w-[340px] flex-shrink-0 bg-card border border-border/50 rounded-xl p-5 overflow-y-auto">
+          <div className="w-full md:w-[340px] flex-shrink-0 bg-card border border-border/50 rounded-xl p-4 md:p-5 overflow-y-auto md:max-h-[calc(100vh-130px)]">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-sm font-semibold text-foreground">Perfil do Cliente</h3>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedClient(null)}>

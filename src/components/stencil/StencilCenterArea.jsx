@@ -105,10 +105,14 @@ export default function StencilCenterArea({
   onDragOver,
   onDragLeave,
   onDrop,
+  isMobile = false,
 }) {
   return (
     <div
-      className="flex-1 min-w-0 bg-card border border-border/50 rounded-xl overflow-hidden relative flex items-center justify-center min-h-0"
+      className={cn(
+        "bg-card border border-border/50 rounded-xl overflow-hidden relative flex items-center justify-center",
+        isMobile ? "w-full min-h-[300px]" : "flex-1 min-w-0 min-h-0"
+      )}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}

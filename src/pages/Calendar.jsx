@@ -36,25 +36,25 @@ export default function Calendar() {
     <div className="min-h-screen">
       <Topbar title="Agenda" subtitle="Gerencie suas sessões e horários" />
 
-      <div className="p-6 flex gap-6 h-[calc(100vh-64px)]">
+      <div className="p-3 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 h-auto md:h-[calc(100vh-64px)]">
         {/* Calendar Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Calendar Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3 md:mb-4">
+            <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" className="h-8 w-8">
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <h2 className="text-base font-semibold text-foreground">24 de Maio, 2026</h2>
+              <h2 className="text-sm md:text-base font-semibold text-foreground">24 de Maio, 2026</h2>
               <Button variant="outline" size="icon" className="h-8 w-8">
                 <ChevronRight className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="sm" className="text-xs text-primary ml-2">Hoje</Button>
+              <Button variant="ghost" size="sm" className="text-xs text-primary">Hoje</Button>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
               <Select defaultValue="all">
-                <SelectTrigger className="h-8 w-40 text-xs">
+                <SelectTrigger className="h-8 w-36 text-xs">
                   <SelectValue placeholder="Artista" />
                 </SelectTrigger>
                 <SelectContent>
@@ -73,13 +73,13 @@ export default function Calendar() {
               </Tabs>
 
               <Button size="sm" className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 text-xs">
-                <Plus className="w-3.5 h-3.5" /> Nova Sessão
+                <Plus className="w-3.5 h-3.5" /><span className="hidden sm:inline">Nova Sessão</span><span className="sm:hidden">Nova</span>
               </Button>
             </div>
           </div>
 
           {/* Day View */}
-          <div className="flex-1 bg-card border border-border/50 rounded-xl overflow-y-auto">
+          <div className="flex-1 bg-card border border-border/50 rounded-xl overflow-y-auto" style={{ minHeight: 400 }}>
             <div className="relative min-h-[780px]">
               {hours.map((hour, i) => (
                 <div key={hour} className="flex border-b border-border/20" style={{ height: "60px" }}>
@@ -126,7 +126,7 @@ export default function Calendar() {
 
         {/* Session Detail Panel */}
         {selectedSession && (
-          <div className="w-80 flex-shrink-0 bg-card border border-border/50 rounded-xl p-5 overflow-y-auto">
+          <div className="w-full md:w-80 flex-shrink-0 bg-card border border-border/50 rounded-xl p-4 md:p-5 overflow-y-auto md:max-h-[calc(100vh-130px)]">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-sm font-semibold text-foreground">Detalhes da Sessão</h3>
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedSession(null)}>

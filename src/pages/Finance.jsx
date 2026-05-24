@@ -34,18 +34,18 @@ export default function Finance() {
     <div className="min-h-screen">
       <Topbar title="Financeiro" subtitle="Controle financeiro do estúdio" />
 
-      <div className="p-6 space-y-6">
+      <div className="p-3 md:p-6 space-y-4 md:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="bg-muted/30 h-9">
               <TabsTrigger value="overview" className="text-xs">Visão Geral</TabsTrigger>
               <TabsTrigger value="transactions" className="text-xs">Transações</TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Select defaultValue="month">
-              <SelectTrigger className="h-9 w-36 text-xs">
+              <SelectTrigger className="h-9 w-32 md:w-36 text-xs">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -56,13 +56,13 @@ export default function Finance() {
               </SelectContent>
             </Select>
             <Button variant="outline" size="sm" className="h-9 text-xs gap-1.5">
-              <Download className="w-3.5 h-3.5" /> Exportar
+              <Download className="w-3.5 h-3.5" /><span className="hidden sm:inline">Exportar</span>
             </Button>
           </div>
         </div>
 
-        {/* KPIs */}
-        <div className="grid grid-cols-5 gap-4">
+        {/* KPIs — 2 cols mobile, 3 cols tablet, 5 cols desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
           <KPICard title="Faturamento" value="R$ 21.000" change="+15% vs mês anterior" trend="up" icon={DollarSign} />
           <KPICard title="Depósitos" value="R$ 3.200" change="8 recebidos" trend="up" icon={CreditCard} />
           <KPICard title="Despesas" value="R$ 5.800" change="+7% vs mês anterior" trend="down" icon={ArrowDownRight} />
@@ -71,7 +71,7 @@ export default function Finance() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
           <div className="bg-card border border-border/50 rounded-xl p-5">
             <SectionHeader title="Receita vs Despesas" description="Últimos 5 meses" />
             <div className="h-[260px] mt-3">
@@ -113,7 +113,8 @@ export default function Finance() {
         {/* Transactions Table */}
         <div className="bg-card border border-border/50 rounded-xl p-5">
           <SectionHeader title="Transações Recentes" description="Últimas movimentações" />
-          <div className="mt-3 overflow-hidden rounded-lg border border-border/30">
+          {/* Desktop table */}
+          <div className="mt-3 hidden md:block overflow-hidden rounded-lg border border-border/30">
             <table className="w-full">
               <thead>
                 <tr className="bg-muted/30">
@@ -128,16 +129,27 @@ export default function Finance() {
                   <tr key={t.id} className="border-t border-border/20 hover:bg-muted/10 transition-colors">
                     <td className="px-4 py-3 text-sm">{t.desc}</td>
                     <td className="px-4 py-3 text-xs text-muted-foreground font-mono">{t.date}</td>
-                    <td className="px-4 py-3">
-                      <StatusBadge label={t.method} variant="neutral" />
-                    </td>
-                    <td className={`px-4 py-3 text-sm font-semibold text-right ${t.type === "income" ? "text-primary" : "text-destructive"}`}>
-                      {t.amount}
-                    </td>
+                    <td className="px-4 py-3"><StatusBadge label={t.method} variant="neutral" /></td>
+                    <td className={`px-4 py-3 text-sm font-semibold text-right ${t.type === "income" ? "text-primary" : "text-destructive"}`}>{t.amount}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+          {/* Mobile cards */}
+          <div className="mt-3 md:hidden space-y-2">
+            {transactions.map((t) => (
+              <div key={t.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/20 border border-border/30">
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-foreground truncate">{t.desc}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[10px] text-muted-foreground font-mono">{t.date}</span>
+                    <span className="text-[10px] text-muted-foreground">{t.method}</span>
+                  </div>
+                </div>
+                <span className={`text-sm font-bold shrink-0 ml-3 ${t.type === "income" ? "text-primary" : "text-destructive"}`}>{t.amount}</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>
