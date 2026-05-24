@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MANAGER
+  ARTIST
+  ASSISTANT
+}
+
+enum UserStatus {
+  ACTIVE
+  INVITED
+  DISABLED
+}
+
+model Studio {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  timezone  String
+  currency  String
+  locale    String
+  email     String
+  phone     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users   User[]
+  artists Artist[]
+  clients Client[]
+}
+
+model User {
+  id           String       @id @default(cuid())
+  studioId     String
+  email        String       @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  role         UserRole
+  status       UserStatus   @default(ACTIVE)
+  lastLoginAt  DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  studio       Studio       @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  artist       Artist?
+  authSessions AuthSession[]
+}
+
+model Artist {
+  id                        String   @id @default(cuid())
+  studioId                  String
+  userId                    String?  @unique
+  displayName               String
+  slug                      String
+  bio                       String?
+  specialties               String[]
+  active                    Boolean  @default(true)
+  colorHex                  String?
+  defaultSessionDurationMin Int?
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([studioId, slug])
+}
+
+model Client {
+  id        String   @id @default(cuid())
+  studioId  String
+  firstName String
+  lastName  String
+  phone     String?
+  email     String?
+  instagram String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+
+  @@index([studioId, firstName])
+  @@index([studioId, lastName])
+  @@index([studioId, email])
+  @@index([studioId, phone])
+}
+
+model AuthSession {
+  id               String   @id @default(cuid())
+  userId           String
+  sessionTokenHash String   @unique
+  userAgent        String?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  createdAt        DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

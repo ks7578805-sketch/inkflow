@@ -1,39 +1,72 @@
-**Welcome to your Base44 project** 
+# InkFlow Monorepo
 
-**About**
+## Estrutura
 
-View and Edit  your app on [Base44.com](http://Base44.com) 
+- `apps/web` — frontend React + Vite
+- `apps/api` — backend NestJS + Prisma
+- `packages/contracts` — contratos compartilhados
+- `infra/docker` — infraestrutura local
+- `docs` — documentação
 
-This project contains everything you need to run your app locally.
+## Requisitos
 
-**Edit the code in your local development environment**
+- Node.js 20+
+- pnpm 10+
+- Docker
 
-Any change pushed to the repo will also be reflected in the Base44 Builder.
+## Rodando localmente
 
-**Prerequisites:** 
+### 1. Subir o PostgreSQL
 
-1. Clone the repository using the project's Git URL 
-2. Navigate to the project directory
-3. Install dependencies: `npm install`
-4. Create an `.env.local` file and set the right environment variables
-
-```
-VITE_BASE44_APP_ID=your_app_id
-VITE_BASE44_APP_BASE_URL=your_backend_url
-
-e.g.
-VITE_BASE44_APP_ID=cbef744a8545c389ef439ea6
-VITE_BASE44_APP_BASE_URL=https://my-to-do-list-81bfaad7.base44.app
+```bash
+pnpm db:up
 ```
 
-Run the app: `npm run dev`
+### 2. Instalar dependências
 
-**Publish your changes**
+```bash
+pnpm install
+```
 
-Open [Base44.com](http://Base44.com) and click on Publish.
+### 3. Preparar o backend
 
-**Docs & Support**
+```bash
+cp apps/api/.env.example apps/api/.env
+pnpm --filter api prisma:generate
+pnpm --filter api prisma:migrate --name init_foundation
+pnpm --filter api prisma:seed
+```
 
-Documentation: [https://docs.base44.com/Integrations/Using-GitHub](https://docs.base44.com/Integrations/Using-GitHub)
+### 4. Rodar backend e frontend
 
-Support: [https://app.base44.com/support](https://app.base44.com/support)
+Em terminais separados:
+
+```bash
+pnpm dev:api
+```
+
+```bash
+pnpm dev:web
+```
+
+## URLs locais
+
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3001`
+
+## Credenciais seed locais
+
+- Email: `owner@inkflow.local`
+- Senha: `ChangeMe123!`
+
+## Endpoints disponíveis nesta fase
+
+- `POST /v1/auth/login`
+- `POST /v1/auth/logout`
+- `GET /v1/auth/me`
+
+## Observações
+
+- A autenticação estrutural do Base44 foi removida do frontend.
+- Registro e reset de senha permanecem como placeholders nesta fase.
+- Os módulos de domínio ainda usam os mocks herdados até as próximas fases.
