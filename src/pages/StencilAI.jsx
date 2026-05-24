@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Wand2, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import ContrastPreview from "@/components/stencil/ContrastPreview";
 import { cn } from "@/lib/utils";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import ReferenceCard from "@/components/stencil/ReferenceCard";
@@ -20,6 +21,7 @@ export default function StencilAI() {
   const [selectedStyle, setSelectedStyle] = useState("fine");
   const [selectedVersion, setSelectedVersion] = useState(1);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [contrastValue, setContrastValue] = useState(50);
 
   const handleImageSuccess = useCallback((imageData) => {
     setImage(imageData);
@@ -112,7 +114,7 @@ export default function StencilAI() {
           </button>
           {controlsOpen && (
             <div className="p-4">
-              <ControlsContent />
+              <ControlsContent image={image} contrastValue={contrastValue} onContrastChange={setContrastValue} />
             </div>
           )}
         </div>
@@ -200,7 +202,7 @@ export default function StencilAI() {
             <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Controles</span>
           </div>
           <div className="p-4">
-            <ControlsContent />
+            <ControlsContent image={image} contrastValue={contrastValue} onContrastChange={setContrastValue} />
           </div>
         </div>
         <div className="sticky bottom-0 pt-1 pb-0.5">
@@ -267,8 +269,8 @@ export default function StencilAI() {
   );
 }
 
-function ControlsContent() {
-  const [values, setValues] = useState({ line: [50], simplify: [30], contrast: [70] });
+function ControlsContent({ image, contrastValue, onContrastChange }) {
+  const [values, setValues] = useState({ line: [50], simplify: [30] });
   const [activeColor, setActiveColor] = useState(0);
   const set = (key) => (val) => setValues(v => ({ ...v, [key]: val }));
 
@@ -277,7 +279,6 @@ function ControlsContent() {
       {[
         { label: "Espessura da Linha", key: "line", val: values.line },
         { label: "Simplificação", key: "simplify", val: values.simplify },
-        { label: "Contraste", key: "contrast", val: values.contrast },
       ].map((ctrl) => (
         <div key={ctrl.key}>
           <div className="flex justify-between items-center mb-2">
@@ -287,6 +288,9 @@ function ControlsContent() {
           <Slider value={ctrl.val} onValueChange={set(ctrl.key)} max={100} step={1} className="w-full" />
         </div>
       ))}
+
+      {/* Contrast with live preview */}
+      <ContrastPreview image={image} value={contrastValue} onChange={onContrastChange} />
 
       <div>
         <span className="text-[11px] text-muted-foreground/80 block mb-2">Cor da Linha</span>
