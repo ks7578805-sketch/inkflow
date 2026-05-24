@@ -1,194 +1,289 @@
+import { useState, useMemo } from "react";
 import Topbar from "@/components/layout/Topbar";
-import StatusBadge from "@/components/shared/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Search, Plus, User, Phone, Instagram, Star, CalendarDays,
-  ChevronRight, HeartPulse, FileCheck, X, Mail
-} from "lucide-react";
-import { useState } from "react";
+import { Search, Plus, Star, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const clients = [
-  { id: 1, name: "Lucas Mendes", phone: "+55 11 99999-1234", ig: "@lucasm.ink", sessions: 6, total: "R$ 4.800", vip: true, status: "active", nextSession: "28 Mai", tags: ["VIP", "Sessão futura"] },
-  { id: 2, name: "Ana Beatriz", phone: "+55 11 98888-5678", ig: "@anab.tattoo", sessions: 3, total: "R$ 2.400", vip: false, status: "active", nextSession: "02 Jun", tags: ["Sessão futura", "Aprovação pendente"] },
-  { id: 3, name: "Pedro Oliveira", phone: "+55 11 97777-9012", ig: "@pedroolv", sessions: 4, total: "R$ 3.500", vip: false, status: "active", nextSession: "30 Mai", tags: ["Aftercare"] },
-  { id: 4, name: "Marina Santos", phone: "+55 11 96666-3456", ig: "@marinasantos", sessions: 2, total: "R$ 1.200", vip: false, status: "inactive", nextSession: "—", tags: [] },
-  { id: 5, name: "Ricardo Lima", phone: "+55 11 95555-7890", ig: "@ricardoink", sessions: 8, total: "R$ 8.200", vip: true, status: "active", nextSession: "A definir", tags: ["VIP"] },
-  { id: 6, name: "Juliana Costa", phone: "+55 11 94444-2345", ig: "@jucosta", sessions: 1, total: "R$ 600", vip: false, status: "active", nextSession: "05 Jun", tags: ["Sessão futura"] },
-];
-
-const tagColors = {
-  "VIP": "bg-amber-500/10 text-amber-400 border-amber-500/20",
-  "Sessão futura": "bg-primary/10 text-primary border-primary/20",
-  "Aprovação pendente": "bg-violet-500/10 text-violet-400 border-violet-500/20",
-  "Aftercare": "bg-rose-500/10 text-rose-400 border-rose-500/20",
-};
+import { MOCK_CLIENTS, FILTERS, applyFilter, TAG_COLORS } from "@/data/clientsMock";
+import ClientDetailPanel from "@/components/clients/ClientDetailPanel";
+import NewClientModal from "@/components/clients/NewClientModal";
 
 export default function Clients() {
-  const [selectedClient, setSelectedClient] = useState(null);
+  const [clients, setClients] = useState(MOCK_CLIENTS);
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [selected, setSelected] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  const filtered = useMemo(() => {
+    let list = applyFilter(clients, filter);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(c =>
+        c.name.toLowerCase().includes(q) ||
+        c.ig?.toLowerCase().includes(q) ||
+        c.phone?.includes(q) ||
+        c.email?.toLowerCase().includes(q) ||
+        c.artist?.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [clients, filter, search]);
+
+  const handleNewClient = (data) => {
+    setClients(prev => [data, ...prev]);
+    setSelected(data);
+  };
+
+  const handleToggleVip = (id) => {
+    setClients(prev => prev.map(c => {
+      if (c.id !== id) return c;
+      const newVip = !c.vip;
+      return {
+        ...c, vip: newVip,
+        tags: newVip
+          ? [...c.tags.filter(t => t !== "VIP"), "VIP"]
+          : c.tags.filter(t => t !== "VIP"),
+      };
+    }));
+    setSelected(prev => {
+      if (!prev || prev.id !== id) return prev;
+      const newVip = !prev.vip;
+      return {
+        ...prev, vip: newVip,
+        tags: newVip
+          ? [...prev.tags.filter(t => t !== "VIP"), "VIP"]
+          : prev.tags.filter(t => t !== "VIP"),
+      };
+    });
+  };
+
+  const initials = (name) => name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
 
   return (
-    <div className="min-h-screen">
-      <Topbar title="Clientes" subtitle="CRM de clientes do estúdio" />
+    <div className="min-h-screen flex flex-col">
+      <Topbar title="Clientes" subtitle="CRM do estúdio" />
 
-      <div className="p-3 md:p-6 flex flex-col md:flex-row gap-4 md:gap-6 md:h-[calc(100vh-64px)]">
-        {/* List */}
-        <div className="flex-1 space-y-3 md:space-y-4 overflow-y-auto pb-6">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Buscar clientes..." className="pl-9 h-9 bg-secondary/50 text-sm" />
-            </div>
-            <div className="flex gap-2">
-              <Tabs value={filter} onValueChange={setFilter} className="flex-1">
-                <TabsList className="bg-muted/30 h-9 w-full">
-                  <TabsTrigger value="all" className="text-xs flex-1">Todos</TabsTrigger>
-                  <TabsTrigger value="vip" className="text-xs flex-1">VIP</TabsTrigger>
-                  <TabsTrigger value="active" className="text-xs flex-1">Ativos</TabsTrigger>
-                </TabsList>
-              </Tabs>
-              <Button size="sm" className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shrink-0">
-                <Plus className="w-4 h-4" /><span className="hidden sm:inline">Novo</span>
-              </Button>
-            </div>
+      <div className="flex-1 flex flex-col p-3 md:p-5 gap-4 min-h-0">
+        {/* Search + actions */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por nome, @instagram, telefone..."
+              className="pl-9 h-9 bg-secondary/50 border-border/50 text-sm"
+            />
           </div>
-
-          {/* Desktop table */}
-          <div className="hidden md:block bg-card border border-border/50 rounded-xl overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-muted/30">
-                  <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-2.5">Cliente</th>
-                  <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-2.5">Contato</th>
-                  <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-2.5">Sessões</th>
-                  <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-2.5">Total</th>
-                  <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-2.5">Próxima</th>
-                  <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-2.5">Tags</th>
-                  <th className="px-4 py-2.5"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {clients.map((client) => (
-                  <tr key={client.id} className={cn("border-t border-border/20 cursor-pointer transition-colors", selectedClient?.id === client.id ? "bg-primary/5" : "hover:bg-muted/20")} onClick={() => setSelectedClient(client)}>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                          <span className="text-[10px] font-bold text-primary">{client.name.split(" ").map(n => n[0]).join("")}</span>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-foreground flex items-center gap-1.5">{client.name}{client.vip && <Star className="w-3 h-3 text-amber-400 fill-amber-400" />}</p>
-                          <p className="text-[11px] text-muted-foreground">{client.ig}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">{client.phone}</td>
-                    <td className="px-4 py-3 text-sm font-medium">{client.sessions}</td>
-                    <td className="px-4 py-3 text-sm font-medium text-primary">{client.total}</td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">{client.nextSession}</td>
-                    <td className="px-4 py-3"><div className="flex gap-1 flex-wrap">{client.tags.map((tag) => <span key={tag} className={cn("text-[10px] px-2 py-0.5 rounded-full border font-medium", tagColors[tag])}>{tag}</span>)}</div></td>
-                    <td className="px-4 py-3"><ChevronRight className="w-4 h-4 text-muted-foreground" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile cards */}
-          <div className="md:hidden space-y-2">
-            {clients.map((client) => (
-              <div key={client.id} className={cn("bg-card border rounded-xl p-3.5 cursor-pointer transition-all active:scale-[0.99]", selectedClient?.id === client.id ? "border-primary/30 bg-primary/5" : "border-border/50")} onClick={() => setSelectedClient(client)}>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs font-bold text-primary">{client.name.split(" ").map(n => n[0]).join("")}</span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-sm font-semibold text-foreground truncate">{client.name}</p>
-                      {client.vip && <Star className="w-3 h-3 text-amber-400 fill-amber-400 flex-shrink-0" />}
-                    </div>
-                    <p className="text-[11px] text-muted-foreground">{client.ig}</p>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-semibold text-primary">{client.total}</p>
-                    <p className="text-[10px] text-muted-foreground">{client.sessions} sessões</p>
-                  </div>
-                </div>
-                {client.tags.length > 0 && (
-                  <div className="flex gap-1 flex-wrap mt-2">
-                    {client.tags.map((tag) => <span key={tag} className={cn("text-[9px] px-2 py-0.5 rounded-full border font-medium", tagColors[tag])}>{tag}</span>)}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+          <Button
+            size="sm"
+            onClick={() => setShowModal(true)}
+            className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shrink-0"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Novo Cliente</span>
+          </Button>
         </div>
 
-        {/* Client Detail */}
-        {selectedClient && (
-          <div className="w-full md:w-[340px] flex-shrink-0 bg-card border border-border/50 rounded-xl p-4 md:p-5 overflow-y-auto md:max-h-[calc(100vh-130px)]">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-sm font-semibold text-foreground">Perfil do Cliente</h3>
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setSelectedClient(null)}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
+        {/* Filter tabs */}
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
+          {FILTERS.map((f) => {
+            const count = applyFilter(clients, f.id).length;
+            return (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all border",
+                  filter === f.id
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-muted/20 text-muted-foreground border-border/50 hover:bg-muted/30 hover:text-foreground"
+                )}
+              >
+                {f.label}
+                <span className={cn(
+                  "text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center",
+                  filter === f.id ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted/50 text-muted-foreground"
+                )}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-            <div className="text-center mb-5">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center mx-auto mb-3">
-                <span className="text-lg font-bold text-primary">{selectedClient.name.split(" ").map(n => n[0]).join("")}</span>
+        {/* Main content */}
+        <div className="flex-1 flex gap-4 min-h-0" style={{ height: "calc(100vh - 250px)" }}>
+          {/* Client list */}
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            {/* Desktop table */}
+            <div className="hidden md:flex flex-col flex-1 bg-card border border-border/50 rounded-xl overflow-hidden">
+              {/* Table header */}
+              <div className="grid grid-cols-[2fr_1.5fr_80px_100px_120px_140px] gap-0 border-b border-border/30 bg-muted/20 px-4 py-2.5">
+                {["Cliente", "Contato", "Sessões", "Total", "Próxima Sessão", "Status"].map(h => (
+                  <div key={h} className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{h}</div>
+                ))}
               </div>
-              <p className="text-base font-semibold text-foreground flex items-center justify-center gap-1.5">
-                {selectedClient.name}
-                {selectedClient.vip && <Star className="w-4 h-4 text-amber-400 fill-amber-400" />}
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">{selectedClient.ig}</p>
-            </div>
 
-            <div className="grid grid-cols-2 gap-3 mb-5">
-              <div className="bg-muted/20 rounded-lg p-3 text-center">
-                <p className="text-lg font-bold text-foreground">{selectedClient.sessions}</p>
-                <p className="text-[10px] text-muted-foreground">Sessões</p>
-              </div>
-              <div className="bg-muted/20 rounded-lg p-3 text-center">
-                <p className="text-lg font-bold text-primary">{selectedClient.total}</p>
-                <p className="text-[10px] text-muted-foreground">Total gasto</p>
-              </div>
-            </div>
-
-            <div className="space-y-3 mb-5">
-              {[
-                { icon: Phone, label: "Telefone", value: selectedClient.phone },
-                { icon: Instagram, label: "Instagram", value: selectedClient.ig },
-                { icon: Mail, label: "Email", value: `${selectedClient.name.split(" ")[0].toLowerCase()}@email.com` },
-                { icon: CalendarDays, label: "Próxima sessão", value: selectedClient.nextSession },
-              ].map((item) => (
-                <div key={item.label} className="flex items-center gap-3 py-1.5">
-                  <item.icon className="w-4 h-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-[10px] text-muted-foreground">{item.label}</p>
-                    <p className="text-xs font-medium text-foreground">{item.value}</p>
+              {/* Rows */}
+              <div className="flex-1 overflow-y-auto">
+                {filtered.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center h-48 text-center">
+                    <div className="w-10 h-10 rounded-2xl bg-muted/30 flex items-center justify-center mb-3">
+                      <Users className="w-5 h-5 text-muted-foreground/40" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground">
+                      {search ? "Nenhum resultado encontrado" : "Nenhum cliente neste filtro"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {search ? `Busca por "${search}"` : "Tente outro filtro"}
+                    </p>
                   </div>
+                ) : filtered.map((client) => (
+                  <div
+                    key={client.id}
+                    onClick={() => setSelected(client)}
+                    className={cn(
+                      "grid grid-cols-[2fr_1.5fr_80px_100px_120px_140px] gap-0 items-center px-4 py-3 border-b border-border/15 last:border-0 cursor-pointer transition-all",
+                      selected?.id === client.id
+                        ? "bg-primary/8 border-l-2 border-l-primary"
+                        : "hover:bg-muted/20"
+                    )}
+                  >
+                    {/* Name */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="relative shrink-0">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center">
+                          <span className="text-[10px] font-bold text-primary">{initials(client.name)}</span>
+                        </div>
+                        {client.vip && (
+                          <div className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-amber-500 flex items-center justify-center">
+                            <Star className="w-2 h-2 text-white fill-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{client.name}</p>
+                        <p className="text-[11px] text-muted-foreground truncate">{client.ig}</p>
+                      </div>
+                    </div>
+
+                    {/* Contact */}
+                    <div className="min-w-0">
+                      <p className="text-xs text-foreground/80 truncate">{client.phone}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{client.email}</p>
+                    </div>
+
+                    {/* Sessions */}
+                    <div className="text-sm font-bold text-foreground">{client.sessions}</div>
+
+                    {/* Total */}
+                    <div className="text-sm font-bold text-primary">
+                      {client.total > 0 ? `R$ ${client.total.toLocaleString("pt-BR")}` : "—"}
+                    </div>
+
+                    {/* Next session */}
+                    <div className="text-xs text-muted-foreground">{client.nextSession}</div>
+
+                    {/* Tags */}
+                    <div className="flex gap-1 flex-wrap">
+                      {client.tags.slice(0, 2).map(tag => (
+                        <span key={tag} className={cn("text-[9px] px-1.5 py-0.5 rounded-full border font-semibold", TAG_COLORS[tag] || "bg-muted/30 text-muted-foreground border-border")}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer count */}
+              <div className="px-4 py-2 border-t border-border/20 bg-muted/10">
+                <p className="text-[11px] text-muted-foreground">{filtered.length} cliente{filtered.length !== 1 ? "s" : ""}</p>
+              </div>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden flex-1 overflow-y-auto space-y-2">
+              {filtered.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-48 text-center bg-card border border-border/50 rounded-xl">
+                  <Users className="w-8 h-8 text-muted-foreground/30 mb-2" />
+                  <p className="text-sm text-muted-foreground">Nenhum cliente encontrado</p>
+                </div>
+              ) : filtered.map((client) => (
+                <div
+                  key={client.id}
+                  onClick={() => setSelected(client)}
+                  className={cn(
+                    "bg-card border rounded-xl p-3.5 cursor-pointer transition-all active:scale-[0.99]",
+                    selected?.id === client.id ? "border-primary/40 bg-primary/5" : "border-border/50 hover:border-border"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="relative shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary/25 to-primary/5 flex items-center justify-center">
+                        <span className="text-xs font-bold text-primary">{initials(client.name)}</span>
+                      </div>
+                      {client.vip && (
+                        <div className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center">
+                          <Star className="w-2.5 h-2.5 text-white fill-white" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-foreground truncate">{client.name}</p>
+                      <p className="text-[11px] text-muted-foreground">{client.ig} · {client.sessions} sessões</p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-sm font-bold text-primary">{client.total > 0 ? `R$ ${client.total.toLocaleString("pt-BR")}` : "—"}</p>
+                      <p className="text-[10px] text-muted-foreground">{client.nextSession !== "—" ? client.nextSession : "Sem sessão"}</p>
+                    </div>
+                  </div>
+                  {client.tags.length > 0 && (
+                    <div className="flex gap-1 flex-wrap mt-2">
+                      {client.tags.map(tag => (
+                        <span key={tag} className={cn("text-[9px] px-2 py-0.5 rounded-full border font-semibold", TAG_COLORS[tag] || "bg-muted/30 text-muted-foreground border-border")}>
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
-
-            <div className="mb-5">
-              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Observações</p>
-              <div className="bg-muted/20 rounded-lg p-3">
-                <p className="text-xs text-muted-foreground leading-relaxed">Sem alergias conhecidas. Prefere sessões pela manhã. Referências salvas no projeto.</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Button variant="outline" size="sm" className="w-full text-xs gap-1.5"><FileCheck className="w-3 h-3" /> Documentos</Button>
-              <Button variant="outline" size="sm" className="w-full text-xs gap-1.5"><HeartPulse className="w-3 h-3" /> Aftercare</Button>
-            </div>
           </div>
-        )}
+
+          {/* Detail panel — desktop */}
+          {selected && (
+            <div className="hidden md:flex w-72 lg:w-80 flex-shrink-0 flex-col bg-card border border-border/50 rounded-xl p-5 overflow-y-auto">
+              <ClientDetailPanel
+                client={selected}
+                onClose={() => setSelected(null)}
+                onToggleVip={handleToggleVip}
+              />
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Mobile detail bottom sheet */}
+      {selected && (
+        <div className="fixed md:hidden inset-x-0 bottom-0 z-50 bg-card border-t border-border rounded-t-2xl p-5 shadow-2xl max-h-[80vh] overflow-y-auto">
+          <div className="w-10 h-1 bg-muted-foreground/20 rounded-full mx-auto mb-4" />
+          <ClientDetailPanel
+            client={selected}
+            onClose={() => setSelected(null)}
+            onToggleVip={handleToggleVip}
+          />
+        </div>
+      )}
+
+      <NewClientModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onSave={handleNewClient}
+      />
     </div>
   );
 }
