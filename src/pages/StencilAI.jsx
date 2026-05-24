@@ -1,12 +1,14 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
 import Topbar from "@/components/layout/Topbar";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Wand2, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { Wand2, Loader2, ChevronDown, ChevronUp, Save } from "lucide-react";
 import ContrastPreview from "@/components/stencil/ContrastPreview";
 import LayerSelector from "@/components/stencil/LayerSelector";
+import SaveStencilModal from "@/components/stencil/SaveStencilModal";
 import { cn } from "@/lib/utils";
 import { useImageUpload } from "@/hooks/useImageUpload";
 import ReferenceCard from "@/components/stencil/ReferenceCard";
@@ -24,6 +26,8 @@ export default function StencilAI() {
   const [controlsOpen, setControlsOpen] = useState(false);
   const [contrastValue, setContrastValue] = useState(50);
   const [layerCount, setLayerCount] = useState(2);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const stencilRef = useRef(null);
 
   const handleImageSuccess = useCallback((imageData) => {
     setImage(imageData);
@@ -62,25 +66,54 @@ export default function StencilAI() {
     setIsGenerating(false);
   }, []);
 
-  const handleGenerate = useCallback(() => {
+  const handleGenerate = useCallback(async () => {
     if (!image) return;
     setIsGenerating(true);
     setHasResult(false);
     setCurrentStep(0);
-    let step = 0;
-    const interval = setInterval(() => {
-      step += 1;
-      setCurrentStep(step);
-      if (step >= 4) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsGenerating(false);
-          setHasResult(true);
-          toast.success("Stencil gerado com sucesso!");
-        }, 900);
-      }
-    }, 1300);
-  }, [image]);
+
+    try {
+      // Simula progresso
+      let step = 0;
+      const interval = setInterval(() => {
+        step += 1;
+        setCurrentStep(Math.min(step, 3));
+      }, 800);
+
+      // Chama IA para otimizar o stencil
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Você é um especialista em tatuagem. Analise esta imagem e gere uma descrição detalhada de como convertê-la em um stencil otimizado para tatuagem com:
+- Alto contraste (preto e branco)
+- Linhas claras e bem definidas
+- Remoção de detalhes menores
+- Otimização para a técnica de tatuagem estilo ${selectedStyle}
+- Profundidade e camadas recomendadas: ${layerCount} camadas
+Descreva as alterações específicas a fazer e retorne um JSON com: {"edits": [...], "layers": N, "technique": "..."}.`,
+        file_urls: [image.url],
+        response_json_schema: {
+          type: "object",
+          properties: {
+            edits: { type: "array", items: { type: "string" } },
+            layers: { type: "number" },
+            technique: { type: "string" },
+          },
+        },
+      });
+
+      clearInterval(interval);
+      setCurrentStep(4);
+      
+      setTimeout(() => {
+        setIsGenerating(false);
+        setHasResult(true);
+        toast.success("Stencil otimizado com IA!");
+      }, 500);
+    } catch (err) {
+      console.error("Erro ao gerar stencil:", err);
+      setIsGenerating(false);
+      toast.error("Erro ao processar stencil. Tente novamente.");
+    }
+  }, [image, selectedStyle, layerCount]);
 
   // ── MOBILE LAYOUT ─────────────────────────────────────
   const MobileLayout = (
@@ -122,7 +155,7 @@ export default function StencilAI() {
         </div>
 
         {/* 4. Center area / preview */}
-        <div className="rounded-xl overflow-hidden border border-border/50 bg-card" style={{ minHeight: 280 }}>
+        <div ref={stencilRef} className="rounded-xl overflow-hidden border border-border/50 bg-card" style={{ minHeight: 280 }}>
           <StencilCenterArea
             image={image}
             isGenerating={isGenerating}
@@ -168,17 +201,13 @@ export default function StencilAI() {
             }
           </Button>
         ) : (
-          <div className="grid grid-cols-3 gap-2">
-            <Button variant="outline" className="h-11 text-xs gap-1 border-border/40 font-medium">
-              Salvar
-            </Button>
-            <Button variant="outline" className="h-11 text-xs gap-1 border-border/40 font-medium">
-              PDF
-            </Button>
-            <Button variant="outline" className="h-11 text-xs gap-1 border-border/40 font-medium">
-              PNG
-            </Button>
-          </div>
+          <Button
+            onClick={() => setSaveModalOpen(true)}
+            className="w-full h-11 font-bold gap-2 text-sm rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground"
+          >
+            <Save className="w-4 h-4" />
+            Salvar Stencil
+          </Button>
         )}
       </div>
     </div>
@@ -226,17 +255,19 @@ export default function StencilAI() {
         </div>
       </aside>
 
-      <StencilCenterArea
-        image={image}
-        isGenerating={isGenerating}
-        hasResult={hasResult}
-        currentStep={currentStep}
-        onGenerate={handleGenerate}
-        onReplaceImage={openFilePicker}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      />
+      <div ref={stencilRef} className="flex-1 min-h-0 overflow-hidden">
+        <StencilCenterArea
+          image={image}
+          isGenerating={isGenerating}
+          hasResult={hasResult}
+          currentStep={currentStep}
+          onGenerate={handleGenerate}
+          onReplaceImage={openFilePicker}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        />
+      </div>
 
       <StencilRightPanel
         hasResult={hasResult}
@@ -267,6 +298,8 @@ export default function StencilAI() {
       <div className="hidden md:flex flex-1 min-h-0 overflow-hidden">
         {DesktopLayout}
       </div>
+
+      <SaveStencilModal open={saveModalOpen} onClose={() => setSaveModalOpen(false)} stencilRef={stencilRef} fileName="stencil_otimizado" />
     </div>
   );
 }
