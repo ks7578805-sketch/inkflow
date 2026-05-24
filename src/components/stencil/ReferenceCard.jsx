@@ -1,75 +1,196 @@
-import { Upload, X, RefreshCw, ImageIcon, FileImage } from "lucide-react";
+import { useState } from "react";
+import { Upload, X, RefreshCw, ImageIcon, FileImage, CheckCircle2, Maximize2, Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatFileSize } from "@/hooks/useImageUpload";
+import { motion, AnimatePresence } from "framer-motion";
 
-export default function ReferenceCard({ image, onReplace, onRemove, onClickUpload, isDragOver }) {
+export default function ReferenceCard({
+  image,
+  onReplace,
+  onRemove,
+  onClickUpload,
+  onDragOver,
+  onDragLeave,
+  onDrop,
+  isDragOver,
+}) {
+  const [showFull, setShowFull] = useState(false);
+
   return (
-    <div className={cn(
-      "bg-card border rounded-xl p-4 transition-all duration-300",
-      isDragOver ? "border-primary/50 shadow-[0_0_20px_rgba(52,211,153,0.1)]" : "border-border/50"
-    )}>
-      <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-3">Referência</p>
+    <>
+      {/* Full-size preview modal */}
+      <AnimatePresence>
+        {showFull && image && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-8"
+            onClick={() => setShowFull(false)}
+          >
+            <img src={image.url} alt="referência" className="max-w-full max-h-full rounded-xl shadow-2xl" />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {!image ? (
-        <div
-          onClick={onClickUpload}
-          className="rounded-lg border border-dashed border-border/50 hover:border-primary/30 hover:bg-primary/5 transition-all cursor-pointer p-4 text-center"
-        >
-          <div className="w-8 h-8 rounded-lg bg-muted/40 flex items-center justify-center mx-auto mb-2">
-            <ImageIcon className="w-4 h-4 text-muted-foreground/50" />
-          </div>
-          <p className="text-xs text-muted-foreground/70">Nenhuma referência carregada</p>
-          <p className="text-[10px] text-muted-foreground/40 mt-0.5">JPG, PNG, WEBP · máx. 10MB</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {/* Thumbnail */}
-          <div className="relative rounded-lg overflow-hidden aspect-video bg-muted/30 border border-border/30">
-            <img
-              src={image.url}
-              alt="referência"
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-          </div>
-
-          {/* File info */}
-          <div className="space-y-1">
-            <div className="flex items-center gap-1.5">
-              <FileImage className="w-3 h-3 text-muted-foreground/60 shrink-0" />
-              <p className="text-xs text-foreground font-medium truncate">{image.name}</p>
+      <div
+        className={cn(
+          "bg-card rounded-xl border transition-all duration-300",
+          isDragOver
+            ? "border-primary/60 shadow-[0_0_24px_rgba(52,211,153,0.15)] bg-primary/5"
+            : image
+              ? "border-primary/20 shadow-[0_0_12px_rgba(52,211,153,0.06)]"
+              : "border-border/50 hover:border-border"
+        )}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-border/30">
+          <div className="flex items-center gap-2">
+            <div className={cn(
+              "w-5 h-5 rounded-md flex items-center justify-center",
+              image ? "bg-primary/20" : "bg-muted/40"
+            )}>
+              <ImageIcon className={cn("w-3 h-3", image ? "text-primary" : "text-muted-foreground/50")} />
             </div>
-            <div className="flex gap-3 text-[10px] text-muted-foreground/60">
-              {image.width && image.height && (
-                <span>{image.width} × {image.height}px</span>
-              )}
-              <span>{formatFileSize(image.size)}</span>
-            </div>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Referência
+            </span>
           </div>
-
-          {/* Actions */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className="flex-1 h-7 text-[10px] gap-1 border-border/50 hover:border-primary/40 hover:bg-primary/5"
-              onClick={onReplace}
-            >
-              <RefreshCw className="w-3 h-3" />
-              Trocar
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 w-7 p-0 border-border/50 hover:border-destructive/40 hover:bg-destructive/5 hover:text-destructive"
-              onClick={onRemove}
-            >
-              <X className="w-3 h-3" />
-            </Button>
-          </div>
+          {image && (
+            <span className="flex items-center gap-1 text-[10px] font-medium text-primary">
+              <CheckCircle2 className="w-3 h-3" />
+              Carregada
+            </span>
+          )}
         </div>
-      )}
-    </div>
+
+        <div className="p-4">
+          <AnimatePresence mode="wait">
+            {!image ? (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                {/* Drop / click zone */}
+                <div
+                  onClick={onClickUpload}
+                  className={cn(
+                    "rounded-xl border-2 border-dashed cursor-pointer transition-all duration-200 p-5 text-center",
+                    isDragOver
+                      ? "border-primary/60 bg-primary/5"
+                      : "border-border/40 hover:border-primary/30 hover:bg-primary/[0.03]"
+                  )}
+                >
+                  {isDragOver ? (
+                    <div className="py-2">
+                      <Upload className="w-6 h-6 text-primary mx-auto mb-2 animate-bounce" />
+                      <p className="text-xs font-semibold text-primary">Solte para carregar</p>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-muted/50 to-muted/20 border border-border/30 flex items-center justify-center mx-auto mb-3">
+                        <Upload className="w-5 h-5 text-muted-foreground/50" />
+                      </div>
+                      <p className="text-xs font-medium text-foreground/70 mb-1">Nenhuma referência carregada</p>
+                      <p className="text-[10px] text-muted-foreground/50 mb-3 leading-relaxed">
+                        Clique, arraste ou cole uma imagem
+                      </p>
+                      <div className="flex items-center justify-center gap-1.5 flex-wrap">
+                        {["JPG", "PNG", "WEBP"].map(f => (
+                          <span key={f} className="px-1.5 py-0.5 rounded bg-muted/50 border border-border/30 text-[9px] font-mono font-semibold text-muted-foreground/70 tracking-wider">
+                            {f}
+                          </span>
+                        ))}
+                        <span className="text-[9px] text-muted-foreground/40">• máx. 10MB</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* Clipboard hint */}
+                <p className="text-[10px] text-muted-foreground/40 text-center mt-2.5 flex items-center justify-center gap-1">
+                  <Clipboard className="w-2.5 h-2.5" />
+                  Ctrl+V para colar do clipboard
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="loaded"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="space-y-3"
+              >
+                {/* Thumbnail */}
+                <div
+                  className="relative rounded-lg overflow-hidden border border-border/30 group cursor-pointer"
+                  onClick={() => setShowFull(true)}
+                  style={{ aspectRatio: "4/3" }}
+                >
+                  <img
+                    src={image.url}
+                    alt="referência"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 transition-colors duration-200" />
+                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="w-6 h-6 rounded-md bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                      <Maximize2 className="w-3 h-3 text-white" />
+                    </div>
+                  </div>
+                  <div className="absolute bottom-2 left-2">
+                    <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[9px] text-white/90 font-medium">
+                      Original
+                    </span>
+                  </div>
+                </div>
+
+                {/* File metadata */}
+                <div className="bg-muted/20 rounded-lg px-3 py-2.5 space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <FileImage className="w-3 h-3 text-primary/70 shrink-0" />
+                    <p className="text-xs font-medium text-foreground truncate">{image.name}</p>
+                  </div>
+                  <div className="flex gap-3 text-[10px] text-muted-foreground/60">
+                    {image.width && image.height ? (
+                      <span>{image.width}×{image.height}px</span>
+                    ) : null}
+                    <span>{formatFileSize(image.size)}</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-8 text-[11px] gap-1.5 border-border/40 hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+                    onClick={onReplace}
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    Trocar
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 w-8 p-0 border-border/40 hover:border-destructive/50 hover:bg-destructive/5 hover:text-destructive"
+                    onClick={onRemove}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+    </>
   );
 }
