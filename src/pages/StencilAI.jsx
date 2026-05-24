@@ -66,54 +66,26 @@ export default function StencilAI() {
     setIsGenerating(false);
   }, []);
 
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = useCallback(() => {
     if (!image) return;
     setIsGenerating(true);
     setHasResult(false);
     setCurrentStep(0);
 
-    try {
-      // Simula progresso
-      let step = 0;
-      const interval = setInterval(() => {
-        step += 1;
-        setCurrentStep(Math.min(step, 3));
-      }, 800);
-
-      // Chama IA para otimizar o stencil
-      const result = await base44.integrations.Core.InvokeLLM({
-        prompt: `Você é um especialista em tatuagem. Analise esta imagem e gere uma descrição detalhada de como convertê-la em um stencil otimizado para tatuagem com:
-- Alto contraste (preto e branco)
-- Linhas claras e bem definidas
-- Remoção de detalhes menores
-- Otimização para a técnica de tatuagem estilo ${selectedStyle}
-- Profundidade e camadas recomendadas: ${layerCount} camadas
-Descreva as alterações específicas a fazer e retorne um JSON com: {"edits": [...], "layers": N, "technique": "..."}.`,
-        file_urls: [image.url],
-        response_json_schema: {
-          type: "object",
-          properties: {
-            edits: { type: "array", items: { type: "string" } },
-            layers: { type: "number" },
-            technique: { type: "string" },
-          },
-        },
-      });
-
-      clearInterval(interval);
-      setCurrentStep(4);
-      
-      setTimeout(() => {
-        setIsGenerating(false);
-        setHasResult(true);
-        toast.success("Stencil otimizado com IA!");
-      }, 500);
-    } catch (err) {
-      console.error("Erro ao gerar stencil:", err);
-      setIsGenerating(false);
-      toast.error("Erro ao processar stencil. Tente novamente.");
-    }
-  }, [image, selectedStyle, layerCount]);
+    let step = 0;
+    const interval = setInterval(() => {
+      step += 1;
+      setCurrentStep(step);
+      if (step >= 5) {
+        clearInterval(interval);
+        setTimeout(() => {
+          setIsGenerating(false);
+          setHasResult(true);
+          toast.success(`Stencil gerado com ${layerCount} camadas!`);
+        }, 300);
+      }
+    }, 800);
+  }, [image, layerCount]);
 
   // ── MOBILE LAYOUT ─────────────────────────────────────
   const MobileLayout = (
