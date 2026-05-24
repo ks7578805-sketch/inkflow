@@ -1,5 +1,10 @@
+import { useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Wand2, RefreshCw, Loader2, CheckCircle2, Clock, Upload, Cpu, Layers, Eye, EyeOff, ZoomIn, ZoomOut, RotateCcw, Sparkles, ArrowLeftCircle } from "lucide-react";
+import {
+  Wand2, RefreshCw, Loader2, CheckCircle2, Clock,
+  Upload, Cpu, Layers, Sparkles, ArrowLeftCircle,
+  ZoomIn, ZoomOut, RotateCcw
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -11,10 +16,9 @@ const processingSteps = [
   { label: "Finalizando versões", icon: Layers },
 ];
 
-// Mocked stencil SVG
-function StencilSVG() {
+function StencilSVG({ className = "" }) {
   return (
-    <svg viewBox="0 0 200 240" className="w-full h-full max-h-[360px] drop-shadow-sm">
+    <svg viewBox="0 0 200 240" className={cn("drop-shadow-sm", className)}>
       <path d="M100 18 C58 38 28 78 38 138 C48 198 78 218 100 228 C122 218 152 198 162 138 C172 78 142 38 100 18Z" fill="none" stroke="#0f172a" strokeWidth="1.6" />
       <path d="M78 58 Q88 78 100 58 Q112 78 122 58" fill="none" stroke="#0f172a" strokeWidth="1" />
       <path d="M68 98 Q100 128 132 98" fill="none" stroke="#0f172a" strokeWidth="1" />
@@ -28,13 +32,74 @@ function StencilSVG() {
   );
 }
 
+/* Draggable before/after comparator */
+function BeforeAfterComparator({ image }) {
+  const [dividerX, setDividerX] = useState(50); // percent
+  const containerRef = useRef(null);
+  const dragging = useRef(false);
+
+  const updateDivider = useCallback((clientX) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const pct = Math.min(95, Math.max(5, ((clientX - rect.left) / rect.width) * 100));
+    setDividerX(pct);
+  }, []);
+
+  const onMouseDown = (e) => { dragging.current = true; e.preventDefault(); };
+  const onMouseMove = (e) => { if (dragging.current) updateDivider(e.clientX); };
+  const onMouseUp = () => { dragging.current = false; };
+  const onTouchMove = (e) => { if (e.touches[0]) updateDivider(e.touches[0].clientX); };
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative w-full h-full rounded-2xl overflow-hidden border border-border/30 shadow-2xl cursor-col-resize select-none"
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onMouseUp}
+    >
+      {/* After — stencil (full width, visible from right) */}
+      <div className="absolute inset-0 bg-white flex items-center justify-center p-8">
+        <StencilSVG className="w-full h-full max-h-[80%] max-w-[60%]" />
+        <span className="absolute bottom-3 right-3 px-2 py-0.5 rounded-md bg-black/10 text-[9px] text-black/50 font-semibold uppercase tracking-wider">
+          Stencil
+        </span>
+      </div>
+
+      {/* Before — original photo, clipped to left portion */}
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ clipPath: `inset(0 ${100 - dividerX}% 0 0)` }}
+      >
+        <img src={image.url} alt="original" className="w-full h-full object-contain bg-muted/20" />
+        <span className="absolute bottom-3 left-3 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-sm text-[9px] text-white/90 font-semibold uppercase tracking-wider">
+          Original
+        </span>
+      </div>
+
+      {/* Divider handle */}
+      <div
+        className="absolute top-0 bottom-0 z-20 flex items-center justify-center"
+        style={{ left: `calc(${dividerX}% - 1px)` }}
+        onMouseDown={onMouseDown}
+        onTouchStart={(e) => { dragging.current = true; e.preventDefault(); }}
+      >
+        <div className="w-0.5 h-full bg-primary/80 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
+        <div className="absolute w-8 h-8 rounded-full bg-background border-2 border-primary shadow-[0_0_12px_rgba(52,211,153,0.4)] flex items-center justify-center cursor-col-resize">
+          <span className="text-[10px] font-bold text-primary select-none">↔</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function StencilCenterArea({
   image,
   isGenerating,
   hasResult,
   currentStep,
-  showBefore,
-  setShowBefore,
   onGenerate,
   onReplaceImage,
   onDragOver,
@@ -43,100 +108,84 @@ export default function StencilCenterArea({
 }) {
   return (
     <div
-      className="flex-1 bg-card border border-border/50 rounded-xl overflow-hidden relative flex items-center justify-center min-h-0"
+      className="flex-1 min-w-0 bg-card border border-border/50 rounded-xl overflow-hidden relative flex items-center justify-center min-h-0"
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
       <AnimatePresence mode="wait">
 
-        {/* ── A: ESTADO VAZIO — espera elegante */}
+        {/* ── A: VAZIO */}
         {!image && !isGenerating && !hasResult && (
           <motion.div
             key="empty"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col items-center justify-center text-center px-10 py-16 max-w-md"
+            transition={{ duration: 0.25 }}
+            className="flex flex-col items-center justify-center text-center px-12 py-16 max-w-sm"
           >
-            {/* Icon cluster */}
-            <div className="relative mb-8">
-              <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-muted/40 to-muted/10 border border-border/30 flex items-center justify-center shadow-inner">
-                <Wand2 className="w-10 h-10 text-muted-foreground/20" />
+            {/* Decorative grid */}
+            <div className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: "radial-gradient(circle, hsl(160 84% 39% / 0.06) 1px, transparent 1px)",
+                backgroundSize: "28px 28px",
+              }}
+            />
+            <div className="relative mb-7">
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/10 border border-border/30 flex items-center justify-center">
+                <Wand2 className="w-9 h-9 text-muted-foreground/15" />
               </div>
-              {/* Floating dots */}
-              <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-primary/20 border border-primary/30 animate-pulse" />
-              <div className="absolute -bottom-1 -left-3 w-3 h-3 rounded-full bg-primary/15 border border-primary/20 animate-pulse" style={{ animationDelay: "500ms" }} />
+              <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-primary/25 border border-primary/40 animate-pulse" />
+              <div className="absolute -bottom-1 -left-2 w-2.5 h-2.5 rounded-full bg-primary/15 border border-primary/25 animate-pulse" style={{ animationDelay: "600ms" }} />
             </div>
-
-            <h3 className="text-lg font-semibold text-foreground/60 mb-2 leading-tight">
-              Adicione uma referência
-            </h3>
-            <p className="text-sm text-muted-foreground/40 leading-relaxed mb-6 max-w-xs">
+            <h3 className="text-base font-semibold text-foreground/50 mb-2">Adicione uma referência</h3>
+            <p className="text-sm text-muted-foreground/35 leading-relaxed mb-5">
               Carregue uma imagem no painel à esquerda, escolha um estilo e gere o stencil aqui
             </p>
-
-            {/* Step hint */}
-            <div className="flex items-center gap-2 text-[11px] text-muted-foreground/30">
+            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/25">
               <ArrowLeftCircle className="w-3.5 h-3.5" />
               Comece pelo painel de referência
             </div>
-
-            {/* Decorative grid */}
-            <div className="absolute inset-0 pointer-events-none opacity-[0.025]"
-              style={{
-                backgroundImage: "radial-gradient(circle, hsl(160 84% 39%) 1px, transparent 1px)",
-                backgroundSize: "32px 32px",
-              }}
-            />
           </motion.div>
         )}
 
-        {/* ── B: IMAGEM CARREGADA — pronto para gerar */}
+        {/* ── B: IMAGEM CARREGADA */}
         {image && !isGenerating && !hasResult && (
           <motion.div
             key="loaded"
             initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={{ duration: 0.2 }}
             className="relative w-full h-full flex flex-col items-center justify-center gap-5 p-8"
           >
-            {/* Subtle grid bg */}
-            <div className="absolute inset-0 pointer-events-none opacity-[0.02]"
+            <div className="absolute inset-0 pointer-events-none"
               style={{
-                backgroundImage: "radial-gradient(circle, hsl(160 84% 39%) 1px, transparent 1px)",
+                backgroundImage: "radial-gradient(circle, hsl(160 84% 39% / 0.04) 1px, transparent 1px)",
                 backgroundSize: "28px 28px",
               }}
             />
-
-            {/* Image preview */}
-            <div className="relative rounded-2xl overflow-hidden border border-border/40 shadow-[0_0_40px_rgba(0,0,0,0.4)] flex-1 max-w-[400px] w-full max-h-[58%]">
-              <img
-                src={image.url}
-                alt="referência"
-                className="w-full h-full object-contain bg-muted/10"
-              />
+            {/* Preview */}
+            <div className="relative rounded-2xl overflow-hidden border border-border/40 shadow-[0_0_50px_rgba(0,0,0,0.5)] flex-1 w-full max-w-[400px] max-h-[60%]">
+              <img src={image.url} alt="referência" className="w-full h-full object-contain bg-muted/10" />
               <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent pointer-events-none" />
-              <div className="absolute top-3 left-3">
-                <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-[10px] text-white/80 font-semibold tracking-wide uppercase">
-                  Original
-                </span>
-              </div>
+              <span className="absolute top-3 left-3 px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-[10px] text-white/80 font-semibold uppercase tracking-wide">
+                Original
+              </span>
             </div>
 
-            {/* Hint */}
+            {/* Hint pill */}
             <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/5 border border-primary/15">
-              <Sparkles className="w-3.5 h-3.5 text-primary/70" />
-              <p className="text-xs text-muted-foreground/70">Selecione um estilo e ajuste os controles antes de gerar</p>
+              <Sparkles className="w-3.5 h-3.5 text-primary/60 shrink-0" />
+              <p className="text-xs text-muted-foreground/60">Selecione um estilo e ajuste os controles antes de gerar</p>
             </div>
 
-            {/* CTA buttons */}
-            <div className="flex gap-3 relative z-10">
+            {/* CTAs */}
+            <div className="flex gap-3 z-10">
               <Button
                 onClick={onGenerate}
-                className="h-12 px-9 bg-primary hover:bg-primary/90 text-primary-foreground font-bold gap-2 text-sm shadow-[0_0_40px_rgba(52,211,153,0.3)] transition-all hover:shadow-[0_0_50px_rgba(52,211,153,0.4)] hover:scale-[1.02]"
+                className="h-12 px-10 bg-primary hover:bg-primary/90 text-primary-foreground font-bold gap-2 shadow-[0_0_40px_rgba(52,211,153,0.3)] hover:shadow-[0_0_50px_rgba(52,211,153,0.4)] transition-all hover:scale-[1.02]"
               >
                 <Wand2 className="w-5 h-5" />
                 Gerar Stencil
@@ -144,80 +193,77 @@ export default function StencilCenterArea({
               <Button
                 variant="outline"
                 onClick={onReplaceImage}
-                className="h-12 px-5 gap-2 border-border/50 hover:border-primary/30 hover:bg-primary/5 font-medium"
+                className="h-12 px-5 gap-2 border-border/50 hover:border-primary/30 hover:bg-primary/5"
               >
                 <RefreshCw className="w-4 h-4" />
-                Trocar imagem
+                Trocar
               </Button>
             </div>
           </motion.div>
         )}
 
-        {/* ── C: GERANDO — overlay com progresso premium */}
+        {/* ── C: GERANDO — loading premium SEM foto de referência */}
         {isGenerating && (
           <motion.div
             key="generating"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 flex items-center justify-center z-10"
+            transition={{ duration: 0.2 }}
+            className="absolute inset-0 flex items-center justify-center z-10 bg-background"
           >
-            {/* Blurred background */}
-            {image && (
-              <img
-                src={image.url}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover opacity-[0.07] blur-xl scale-110"
-              />
-            )}
-            <div className="absolute inset-0 bg-background/90 backdrop-blur-md" />
+            {/* Subtle dot grid background */}
+            <div className="absolute inset-0 pointer-events-none"
+              style={{
+                backgroundImage: "radial-gradient(circle, hsl(160 84% 39% / 0.05) 1px, transparent 1px)",
+                backgroundSize: "32px 32px",
+              }}
+            />
 
-            {/* Progress content */}
-            <div className="relative z-10 flex flex-col items-center gap-7 w-80">
-              {/* Animated icon */}
-              <div className="relative">
-                <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/25 flex items-center justify-center">
-                  <Wand2 className="w-9 h-9 text-primary" />
+            <div className="relative z-10 flex flex-col items-center gap-8 w-[320px]">
+              {/* Animated wand icon with rings */}
+              <div className="relative flex items-center justify-center">
+                <div className="absolute w-28 h-28 rounded-full border border-primary/8 animate-ping" style={{ animationDuration: "2s" }} />
+                <div className="absolute w-20 h-20 rounded-full border border-primary/12 animate-ping" style={{ animationDuration: "2s", animationDelay: "400ms" }} />
+                <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/25 flex items-center justify-center">
+                  <Wand2 className="w-7 h-7 text-primary" />
                 </div>
-                <div className="absolute -inset-2 rounded-3xl border border-primary/15 animate-ping opacity-40" />
-                <div className="absolute -inset-4 rounded-3xl border border-primary/8 animate-ping opacity-20" style={{ animationDelay: "300ms" }} />
               </div>
 
-              <div className="text-center">
-                <p className="text-base font-bold text-foreground mb-1">Gerando stencil com IA</p>
-                <p className="text-xs text-muted-foreground/60">Aguarde enquanto processamos sua referência</p>
+              <div className="text-center space-y-1">
+                <p className="text-base font-bold text-foreground">Gerando stencil com IA</p>
+                <p className="text-xs text-muted-foreground/50">Aguarde enquanto processamos sua referência</p>
               </div>
 
-              {/* Steps */}
-              <div className="space-y-2 w-full">
+              {/* Step list */}
+              <div className="w-full space-y-1.5">
                 {processingSteps.map((step, i) => (
                   <div key={i} className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl border transition-all duration-500",
+                    "flex items-center gap-3 px-4 py-2.5 rounded-xl border transition-all duration-500",
                     i < currentStep
-                      ? "bg-primary/5 border-primary/10 opacity-50"
+                      ? "bg-primary/5 border-primary/10 opacity-40"
                       : i === currentStep
-                        ? "bg-primary/10 border-primary/30 shadow-[0_0_20px_rgba(52,211,153,0.12)]"
-                        : "bg-muted/10 border-transparent"
+                        ? "bg-primary/10 border-primary/30 shadow-[0_0_16px_rgba(52,211,153,0.1)]"
+                        : "bg-muted/5 border-transparent"
                   )}>
-                    <div className="w-6 h-6 flex items-center justify-center shrink-0">
-                      {i < currentStep ? (
-                        <CheckCircle2 className="w-4 h-4 text-primary" />
-                      ) : i === currentStep ? (
-                        <Loader2 className="w-4 h-4 text-primary animate-spin" />
-                      ) : (
-                        <step.icon className="w-4 h-4 text-muted-foreground/25" />
-                      )}
+                    <div className="w-5 h-5 shrink-0 flex items-center justify-center">
+                      {i < currentStep
+                        ? <CheckCircle2 className="w-4 h-4 text-primary" />
+                        : i === currentStep
+                          ? <Loader2 className="w-4 h-4 text-primary animate-spin" />
+                          : <step.icon className="w-4 h-4 text-muted-foreground/20" />
+                      }
                     </div>
                     <span className={cn(
                       "text-xs font-medium flex-1",
-                      i <= currentStep ? "text-foreground" : "text-muted-foreground/30"
+                      i <= currentStep ? "text-foreground/80" : "text-muted-foreground/25"
                     )}>
                       {step.label}
                     </span>
                     {i === currentStep && (
-                      <div className="flex gap-0.5 ml-auto">
+                      <div className="flex gap-0.5">
                         {[0, 1, 2].map(d => (
-                          <span key={d} className="w-1.5 h-1.5 rounded-full bg-primary/70 animate-bounce" style={{ animationDelay: `${d * 120}ms` }} />
+                          <span key={d} className="w-1.5 h-1.5 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: `${d * 120}ms` }} />
                         ))}
                       </div>
                     )}
@@ -228,82 +274,40 @@ export default function StencilCenterArea({
           </motion.div>
         )}
 
-        {/* ── D: RESULTADO — before/after premium */}
+        {/* ── D: RESULTADO — comparador before/after arrastável */}
         {hasResult && !isGenerating && (
           <motion.div
             key="result"
-            initial={{ opacity: 0, scale: 0.97 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            className="relative w-full h-full flex flex-col items-center justify-center p-6 gap-4"
+            transition={{ duration: 0.3 }}
+            className="relative w-full h-full flex flex-col items-center justify-center p-5 gap-3"
           >
-            {/* Before/After split view */}
-            <div className="relative flex-1 w-full max-w-[480px] max-h-[75%]">
-              {showBefore && image ? (
-                /* Before — original */
-                <motion.div
-                  key="before"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="w-full h-full rounded-2xl overflow-hidden border border-border/40 shadow-2xl"
-                >
-                  <img src={image.url} alt="original" className="w-full h-full object-contain bg-muted/10" />
-                  <div className="absolute top-3 left-3">
-                    <span className="px-2.5 py-1 rounded-lg bg-black/60 backdrop-blur-sm text-[10px] text-white/80 font-semibold tracking-wide uppercase">
-                      Original
-                    </span>
-                  </div>
-                </motion.div>
+            {/* Comparator — fills available space */}
+            <div className="flex-1 w-full max-w-[520px] min-h-0">
+              {image ? (
+                <BeforeAfterComparator image={image} />
               ) : (
-                /* After — stencil */
-                <motion.div
-                  key="after"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="w-full h-full rounded-2xl overflow-hidden border border-border/30 shadow-2xl bg-white flex items-center justify-center p-6"
-                >
-                  <StencilSVG />
-                  <div className="absolute bottom-3 left-3">
-                    <span className="px-2.5 py-1 rounded-lg bg-black/10 text-[10px] text-black/50 font-semibold tracking-wide uppercase">
-                      Stencil v3
-                    </span>
-                  </div>
-                </motion.div>
+                <div className="w-full h-full rounded-2xl bg-white flex items-center justify-center border border-border/30">
+                  <StencilSVG className="w-1/2 h-1/2" />
+                </div>
               )}
             </div>
 
             {/* Controls bar */}
-            <div className="flex items-center gap-2 relative z-10">
-              <div className="flex rounded-lg overflow-hidden border border-border/40">
-                <button
-                  onClick={() => setShowBefore(false)}
-                  className={cn(
-                    "px-4 py-2 text-xs font-medium transition-all flex items-center gap-1.5",
-                    !showBefore ? "bg-primary/15 text-primary border-r border-primary/20" : "bg-card text-muted-foreground hover:bg-muted/50 border-r border-border/30"
-                  )}
-                >
-                  <Wand2 className="w-3 h-3" /> Stencil
-                </button>
-                <button
-                  onClick={() => setShowBefore(true)}
-                  className={cn(
-                    "px-4 py-2 text-xs font-medium transition-all flex items-center gap-1.5",
-                    showBefore ? "bg-primary/15 text-primary" : "bg-card text-muted-foreground hover:bg-muted/50"
-                  )}
-                >
-                  <Eye className="w-3 h-3" /> Original
-                </button>
+            <div className="flex items-center gap-2 z-10 shrink-0">
+              <div className="px-3 py-1.5 rounded-lg bg-muted/30 border border-border/30 text-[10px] text-muted-foreground/60 font-medium">
+                Arraste o divisor para comparar
               </div>
-
               <div className="flex gap-1">
-                <Button variant="outline" size="icon" className="h-8 w-8 bg-card/80 backdrop-blur-sm border-border/40">
+                <Button variant="outline" size="icon" className="h-8 w-8 border-border/40 bg-card/80">
                   <ZoomIn className="w-3.5 h-3.5" />
                 </Button>
-                <Button variant="outline" size="icon" className="h-8 w-8 bg-card/80 backdrop-blur-sm border-border/40">
+                <Button variant="outline" size="icon" className="h-8 w-8 border-border/40 bg-card/80">
                   <ZoomOut className="w-3.5 h-3.5" />
                 </Button>
-                <Button variant="outline" size="icon" className="h-8 w-8 bg-card/80 backdrop-blur-sm border-border/40">
+                <Button variant="outline" size="icon" className="h-8 w-8 border-border/40 bg-card/80">
                   <RotateCcw className="w-3.5 h-3.5" />
                 </Button>
               </div>
@@ -311,10 +315,10 @@ export default function StencilCenterArea({
 
             {/* Success badge */}
             <motion.div
-              initial={{ opacity: 0, y: -8 }}
+              initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="absolute top-4 right-4"
+              transition={{ delay: 0.3 }}
+              className="absolute top-4 right-4 z-20"
             >
               <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/25 text-[11px] font-semibold text-primary shadow-[0_0_16px_rgba(52,211,153,0.15)]">
                 <CheckCircle2 className="w-3.5 h-3.5" />

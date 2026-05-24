@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import Topbar from "@/components/layout/Topbar";
 import { Button } from "@/components/ui/button";
@@ -12,22 +12,12 @@ import StyleCard from "@/components/stencil/StyleCard";
 import StencilCenterArea from "@/components/stencil/StencilCenterArea";
 import StencilRightPanel from "@/components/stencil/StencilRightPanel";
 
-const SAMPLE_IMAGE = {
-  url: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=600&q=80",
-  name: "exemplo_referencia.jpg",
-  size: 120000,
-  type: "image/jpeg",
-  width: 600,
-  height: 400,
-};
-
 export default function StencilAI() {
   const [image, setImage] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hasResult, setHasResult] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedStyle, setSelectedStyle] = useState("fine");
-  const [showBefore, setShowBefore] = useState(false);
   const [selectedVersion, setSelectedVersion] = useState(1);
 
   const handleImageSuccess = useCallback((imageData) => {
@@ -37,9 +27,7 @@ export default function StencilAI() {
     toast.success("Imagem carregada com sucesso");
   }, []);
 
-  const handleImageError = useCallback((msg) => {
-    toast.error(msg);
-  }, []);
+  const handleImageError = useCallback((msg) => toast.error(msg), []);
 
   const {
     isDragOver,
@@ -49,25 +37,20 @@ export default function StencilAI() {
     handleDrop,
     handleDragOver,
     handleDragLeave,
-    loadFromUrl,
   } = useImageUpload({ onSuccess: handleImageSuccess, onError: handleImageError });
 
-  const handlePasteClick = useCallback(() => {
-    navigator.clipboard.read?.().then(items => {
-      for (const item of items) {
-        const imageType = item.types.find(t => t.startsWith("image/"));
-        if (imageType) {
-          item.getType(imageType).then(blob => {
-            const url = URL.createObjectURL(blob);
-            handleImageSuccess({ url, name: "imagem_colada.png", size: blob.size, type: imageType });
-          });
-          return;
-        }
-      }
-      toast.error("Nenhuma imagem encontrada no clipboard.");
-    }).catch(() => {
-      toast.info("Use Ctrl+V enquanto a janela estiver ativa.");
-    });
+  // Ctrl+V paste globally
+  useEffect(() => {
+    const handlePaste = (e) => {
+      const item = Array.from(e.clipboardData?.items || []).find(i => i.type.startsWith("image/"));
+      if (!item) return;
+      const blob = item.getAsFile();
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      handleImageSuccess({ url, name: "imagem_colada.png", size: blob.size, type: blob.type });
+    };
+    window.addEventListener("paste", handlePaste);
+    return () => window.removeEventListener("paste", handlePaste);
   }, [handleImageSuccess]);
 
   const handleRemoveImage = useCallback(() => {
@@ -97,8 +80,8 @@ export default function StencilAI() {
   }, [image]);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hidden file input */}
+    /* Full-screen shell — 100vh minus the app sidebar topbar */
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
       <input
         ref={fileInputRef}
         type="file"
@@ -107,17 +90,15 @@ export default function StencilAI() {
         onChange={handleFileInputChange}
       />
 
-      <Topbar
-        title="Stencil AI"
-        subtitle="Gere stencils profissionais com inteligência artificial"
-      />
+      <Topbar title="Stencil AI" subtitle="Gere stencils profissionais com inteligência artificial" />
 
-      <div className="p-5 flex gap-4 h-[calc(100vh-64px)]">
+      {/* Main 3-column workspace — takes all remaining height */}
+      <div className="flex flex-1 gap-4 p-4 min-h-0 overflow-hidden">
 
-        {/* ── LEFT PANEL */}
-        <div className="w-[264px] flex-shrink-0 flex flex-col gap-3 overflow-y-auto pb-4">
+        {/* ── LEFT PANEL — scrollable independently */}
+        <aside className="w-[260px] flex-shrink-0 flex flex-col gap-3 overflow-y-auto min-h-0 pb-2 pr-0.5">
 
-          {/* 1. Reference Card — entry point */}
+          {/* 1. Reference */}
           <ReferenceCard
             image={image}
             onReplace={openFilePicker}
@@ -129,90 +110,38 @@ export default function StencilAI() {
             isDragOver={isDragOver}
           />
 
-          {/* 2. Style Card — rich style picker with preview */}
+          {/* 2. Style */}
           <StyleCard selectedStyle={selectedStyle} onSelect={setSelectedStyle} />
 
           {/* 3. Controls */}
-          <div className="bg-card border border-border/50 rounded-xl overflow-hidden">
-            <div className="px-4 pt-4 pb-3 border-b border-border/30">
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Controles</span>
-            </div>
-            <div className="p-4 space-y-4">
-              {[
-                { label: "Espessura da Linha", value: [50] },
-                { label: "Simplificação", value: [30] },
-                { label: "Contraste", value: [70] },
-              ].map((ctrl) => (
-                <div key={ctrl.label} className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[11px] text-muted-foreground">{ctrl.label}</span>
-                    <span className="text-[11px] font-mono text-foreground/70 tabular-nums">{ctrl.value[0]}%</span>
-                  </div>
-                  <Slider defaultValue={ctrl.value} max={100} step={1} className="w-full" />
-                </div>
-              ))}
+          <ControlsCard />
 
-              {/* Line color */}
-              <div className="space-y-2">
-                <span className="text-[11px] text-muted-foreground">Cor da Linha</span>
-                <div className="flex gap-2">
-                  {["#0a0a0a", "#1a1a2e", "#16213e", "#0f3460", "#4a1942"].map((color, i) => (
-                    <button
-                      key={color}
-                      className={cn(
-                        "w-6 h-6 rounded-lg border-2 transition-all hover:scale-110",
-                        i === 0 ? "border-primary/40 ring-1 ring-primary/30" : "border-border/30 hover:border-primary/40"
-                      )}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* Output size */}
-              <div className="space-y-2">
-                <span className="text-[11px] text-muted-foreground">Tamanho de Saída</span>
-                <Select defaultValue="a4">
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="a4">A4 (210×297mm)</SelectItem>
-                    <SelectItem value="a3">A3 (297×420mm)</SelectItem>
-                    <SelectItem value="letter">Letter</SelectItem>
-                    <SelectItem value="custom">Personalizado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+          {/* 4. Generate CTA — sticky at the bottom */}
+          <div className="sticky bottom-0 pt-1 pb-0.5">
+            <Button
+              onClick={handleGenerate}
+              disabled={!image || isGenerating}
+              className={cn(
+                "w-full h-11 font-bold gap-2 text-sm transition-all duration-200 rounded-xl",
+                image && !isGenerating
+                  ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_28px_rgba(52,211,153,0.25)] hover:shadow-[0_0_36px_rgba(52,211,153,0.35)]"
+                  : "bg-muted/20 text-muted-foreground/40 border border-border/20 cursor-not-allowed shadow-none"
+              )}
+            >
+              {isGenerating
+                ? <><Loader2 className="w-4 h-4 animate-spin" />Gerando...</>
+                : <><Wand2 className="w-4 h-4" />Gerar Stencil</>
+              }
+            </Button>
           </div>
+        </aside>
 
-          {/* 4. Generate CTA */}
-          <Button
-            onClick={handleGenerate}
-            disabled={!image || isGenerating}
-            className={cn(
-              "w-full h-11 font-bold gap-2 text-sm transition-all duration-200",
-              image && !isGenerating
-                ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_28px_rgba(52,211,153,0.25)] hover:shadow-[0_0_36px_rgba(52,211,153,0.35)] hover:scale-[1.01]"
-                : "bg-muted/30 text-muted-foreground/40 border border-border/20 cursor-not-allowed"
-            )}
-          >
-            {isGenerating
-              ? <><Loader2 className="w-4 h-4 animate-spin" /> Gerando...</>
-              : <><Wand2 className="w-4 h-4" /> Gerar Stencil</>
-            }
-          </Button>
-        </div>
-
-        {/* ── CENTER AREA — main stage */}
+        {/* ── CENTER AREA — main stage, fills remaining space */}
         <StencilCenterArea
           image={image}
           isGenerating={isGenerating}
           hasResult={hasResult}
           currentStep={currentStep}
-          showBefore={showBefore}
-          setShowBefore={setShowBefore}
           onGenerate={handleGenerate}
           onReplaceImage={openFilePicker}
           onDragOver={handleDragOver}
@@ -225,9 +154,81 @@ export default function StencilAI() {
           hasResult={hasResult}
           selectedVersion={selectedVersion}
           setSelectedVersion={setSelectedVersion}
-          image={image}
           selectedStyle={selectedStyle}
         />
+      </div>
+    </div>
+  );
+}
+
+/* Controls sub-component — self-contained */
+function ControlsCard() {
+  const [values, setValues] = useState({ line: [50], simplify: [30], contrast: [70] });
+  const [activeColor, setActiveColor] = useState(0);
+
+  const set = (key) => (val) => setValues(v => ({ ...v, [key]: val }));
+
+  return (
+    <div className="bg-card border border-border/50 rounded-xl flex-shrink-0">
+      <div className="px-4 pt-3.5 pb-3 border-b border-border/30">
+        <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Controles</span>
+      </div>
+      <div className="p-4 space-y-4">
+        {[
+          { label: "Espessura da Linha", key: "line", val: values.line },
+          { label: "Simplificação", key: "simplify", val: values.simplify },
+          { label: "Contraste", key: "contrast", val: values.contrast },
+        ].map((ctrl) => (
+          <div key={ctrl.key}>
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-[11px] text-muted-foreground/80">{ctrl.label}</span>
+              <span className="text-[11px] font-mono text-foreground/60 tabular-nums w-8 text-right">{ctrl.val[0]}</span>
+            </div>
+            <Slider
+              value={ctrl.val}
+              onValueChange={set(ctrl.key)}
+              max={100}
+              step={1}
+              className="w-full"
+            />
+          </div>
+        ))}
+
+        {/* Line color */}
+        <div>
+          <span className="text-[11px] text-muted-foreground/80 block mb-2">Cor da Linha</span>
+          <div className="flex gap-2">
+            {["#080808", "#1a1a2e", "#16213e", "#0f3460", "#3d1035"].map((color, i) => (
+              <button
+                key={color}
+                onClick={() => setActiveColor(i)}
+                className={cn(
+                  "w-6 h-6 rounded-md border-2 transition-all duration-150 hover:scale-110",
+                  activeColor === i
+                    ? "border-primary shadow-[0_0_6px_rgba(52,211,153,0.4)] scale-110"
+                    : "border-border/40 hover:border-primary/40"
+                )}
+                style={{ backgroundColor: color }}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Output size */}
+        <div>
+          <span className="text-[11px] text-muted-foreground/80 block mb-2">Tamanho de Saída</span>
+          <Select defaultValue="a4">
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="a4">A4 — 210×297mm</SelectItem>
+              <SelectItem value="a3">A3 — 297×420mm</SelectItem>
+              <SelectItem value="letter">Letter</SelectItem>
+              <SelectItem value="custom">Personalizado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );
