@@ -7,19 +7,19 @@ import {
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", path: "/" },
-  { icon: Wand2, label: "Stencil AI", path: "/stencil" },
-  { icon: ScanEye, label: "Placement Preview", path: "/placement" },
-  { icon: FolderKanban, label: "Projects", path: "/projects" },
-  { icon: CalendarDays, label: "Calendar", path: "/calendar" },
-  { icon: Users, label: "Clients", path: "/clients" },
-  { icon: Image, label: "Flash Gallery", path: "/flash-gallery" },
-  { icon: DollarSign, label: "Finance", path: "/finance" },
-  { icon: Package, label: "Inventory", path: "/inventory" },
-  { icon: ShieldCheck, label: "Compliance", path: "/compliance" },
-  { icon: HeartPulse, label: "Aftercare", path: "/aftercare" },
-  { icon: BarChart3, label: "Analytics", path: "/analytics" },
-  { icon: Settings, label: "Settings", path: "/settings" },
+  { icon: LayoutDashboard, label: "Painel", path: "/" },
+  { icon: Wand2, label: "Stencil IA", path: "/stencil" },
+  { icon: ScanEye, label: "Prévia no Corpo", path: "/placement" },
+  { icon: FolderKanban, label: "Projetos", path: "/projects" },
+  { icon: CalendarDays, label: "Agenda", path: "/calendar" },
+  { icon: Users, label: "Clientes", path: "/clients" },
+  { icon: Image, label: "Galeria", path: "/flash-gallery" },
+  { icon: DollarSign, label: "Financeiro", path: "/finance" },
+  { icon: Package, label: "Estoque", path: "/inventory" },
+  { icon: ShieldCheck, label: "Documentação", path: "/compliance" },
+  { icon: HeartPulse, label: "Pós-atendimento", path: "/aftercare" },
+  { icon: BarChart3, label: "Análises", path: "/analytics" },
+  { icon: Settings, label: "Configurações", path: "/settings" },
 ];
 
 export default function Sidebar({ collapsed, setCollapsed }) {

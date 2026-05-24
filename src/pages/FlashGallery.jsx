@@ -1,183 +1,201 @@
+import { useState, useMemo } from "react";
 import Topbar from "@/components/layout/Topbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Search, Plus, Heart, DollarSign, Eye, X, Tag } from "lucide-react";
-import { useState } from "react";
+import { Search, Plus, Heart, Eye, Star, RefreshCw, Images } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-const flashes = [
-  { id: 1, name: "Rosa Delicada", style: "Fine Line", price: "R$ 400", status: "Disponível", exclusive: false, artist: "Marcelo R.", likes: 24, colors: "from-rose-500/20 to-rose-900/30" },
-  { id: 2, name: "Dragão Oriental", style: "Japanese", price: "R$ 800", status: "Reservado", exclusive: true, artist: "Marcelo R.", likes: 45, colors: "from-red-500/20 to-orange-900/30" },
-  { id: 3, name: "Mandala Geométrica", style: "Geométrico", price: "R$ 500", status: "Disponível", exclusive: false, artist: "Camila S.", likes: 31, colors: "from-blue-500/20 to-indigo-900/30" },
-  { id: 4, name: "Lobo Blackwork", style: "Blackwork", price: "R$ 600", status: "Disponível", exclusive: true, artist: "Marcelo R.", likes: 52, colors: "from-gray-500/20 to-gray-900/30" },
-  { id: 5, name: "Borboleta Dotwork", style: "Dotwork", price: "R$ 350", status: "Disponível", exclusive: false, artist: "Camila S.", likes: 18, colors: "from-violet-500/20 to-purple-900/30" },
-  { id: 6, name: "Serpente Realista", style: "Realismo", price: "R$ 900", status: "Reservado", exclusive: true, artist: "Marcelo R.", likes: 67, colors: "from-emerald-500/20 to-teal-900/30" },
-  { id: 7, name: "Crânio Traditional", style: "Traditional", price: "R$ 450", status: "Disponível", exclusive: false, artist: "Camila S.", likes: 29, colors: "from-amber-500/20 to-yellow-900/30" },
-  { id: 8, name: "Flor de Lótus", style: "Fine Line", price: "R$ 350", status: "Disponível", exclusive: false, artist: "Marcelo R.", likes: 37, colors: "from-pink-500/20 to-fuchsia-900/30" },
-];
+import { GALLERY_ITEMS, PORTFOLIO_FILTERS, ARTISTS_GALLERY, applyGalleryFilter } from "@/data/galleryMock";
+import AddWorkModal from "@/components/gallery/AddWorkModal";
+import WorkDetailModal from "@/components/gallery/WorkDetailModal";
 
 export default function FlashGallery() {
-  const [selectedFlash, setSelectedFlash] = useState(null);
+  const [items, setItems] = useState(GALLERY_ITEMS);
+  const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
+  const [artistFilter, setArtistFilter] = useState("all");
+  const [selected, setSelected] = useState(null);
   const [favorites, setFavorites] = useState(new Set());
+  const [showAdd, setShowAdd] = useState(false);
 
-  const toggleFavorite = (id, e) => {
+  const filtered = useMemo(
+    () => applyGalleryFilter(items, filter, search, artistFilter),
+    [items, filter, search, artistFilter]
+  );
+
+  const toggleFav = (id, e) => {
     e.stopPropagation();
     setFavorites(prev => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
     });
   };
 
-  return (
-    <div className="min-h-screen">
-      <Topbar title="Flash Gallery" subtitle="Catálogo de flashes disponíveis" />
+  const handleAdd = (data) => setItems(prev => [data, ...prev]);
 
-      <div className="p-6 space-y-5">
-        {/* Filters */}
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1 max-w-sm">
+  const handleToggleFeatured = (id) => {
+    setItems(prev => prev.map(i => i.id === id ? { ...i, featured: !i.featured } : i));
+    setSelected(prev => prev?.id === id ? { ...prev, featured: !prev.featured } : prev);
+  };
+
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Topbar title="Galeria de Trabalhos" subtitle="Portfólio visual do estúdio" />
+
+      <div className="flex-1 p-3 md:p-5 space-y-4">
+        {/* Search + artist + add */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative flex-1 min-w-[180px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input placeholder="Buscar flashes..." className="pl-9 h-9 bg-secondary/50 text-sm" />
+            <Input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por nome, estilo, tag..."
+              className="pl-9 h-9 bg-secondary/50 border-border/50 text-sm"
+            />
           </div>
-          <Select defaultValue="all">
-            <SelectTrigger className="h-9 w-40 text-xs">
-              <SelectValue placeholder="Estilo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os estilos</SelectItem>
-              <SelectItem value="fineline">Fine Line</SelectItem>
-              <SelectItem value="blackwork">Blackwork</SelectItem>
-              <SelectItem value="japanese">Japanese</SelectItem>
-              <SelectItem value="geometric">Geométrico</SelectItem>
-              <SelectItem value="dotwork">Dotwork</SelectItem>
-              <SelectItem value="realism">Realismo</SelectItem>
-              <SelectItem value="traditional">Traditional</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select defaultValue="all">
-            <SelectTrigger className="h-9 w-36 text-xs">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="available">Disponível</SelectItem>
-              <SelectItem value="reserved">Reservado</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select defaultValue="all">
-            <SelectTrigger className="h-9 w-36 text-xs">
+          <Select value={artistFilter} onValueChange={setArtistFilter}>
+            <SelectTrigger className="h-9 w-36 text-xs bg-secondary/50 border-border/50">
               <SelectValue placeholder="Artista" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="marcelo">Marcelo R.</SelectItem>
-              <SelectItem value="camila">Camila S.</SelectItem>
+              <SelectItem value="all">Todos os artistas</SelectItem>
+              {ARTISTS_GALLERY.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button size="sm" className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 ml-auto">
-            <Plus className="w-4 h-4" /> Novo Flash
+          <Button size="sm" onClick={() => setShowAdd(true)} className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 shrink-0">
+            <Plus className="w-4 h-4" />
+            <span className="hidden sm:inline">Adicionar trabalho</span>
           </Button>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-4 gap-4">
-          {flashes.map((flash) => (
-            <div
-              key={flash.id}
-              onClick={() => setSelectedFlash(flash)}
-              className="bg-card border border-border/50 rounded-xl overflow-hidden cursor-pointer group hover:border-primary/20 transition-all"
-            >
-              {/* Image placeholder */}
-              <div className={cn("h-48 relative bg-gradient-to-br", flash.colors)}>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-20 h-20 rounded-full bg-background/10 flex items-center justify-center backdrop-blur-sm">
-                    <Tag className="w-8 h-8 text-foreground/30" />
-                  </div>
-                </div>
-
-                {/* Badges */}
-                <div className="absolute top-3 left-3 flex gap-1.5">
-                  {flash.exclusive && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/20 font-semibold backdrop-blur-sm">
-                      Exclusivo
-                    </span>
-                  )}
-                  {flash.status === "Reservado" && (
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-destructive/20 text-destructive border border-destructive/20 font-semibold backdrop-blur-sm">
-                      Reservado
-                    </span>
-                  )}
-                </div>
-
-                {/* Favorite */}
-                <button
-                  onClick={(e) => toggleFavorite(flash.id, e)}
-                  className="absolute top-3 right-3 w-8 h-8 rounded-full bg-background/20 backdrop-blur-sm flex items-center justify-center hover:bg-background/40 transition-colors"
-                >
-                  <Heart className={cn("w-4 h-4", favorites.has(flash.id) ? "text-rose-400 fill-rose-400" : "text-foreground/60")} />
-                </button>
-
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-background/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <Button size="sm" variant="outline" className="text-xs bg-card/80 backdrop-blur-sm gap-1">
-                    <Eye className="w-3 h-3" /> Ver detalhes
-                  </Button>
-                </div>
-              </div>
-
-              {/* Info */}
-              <div className="p-3.5">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">{flash.name}</p>
-                    <p className="text-xs text-muted-foreground mt-0.5">{flash.style} · {flash.artist}</p>
-                  </div>
-                  <p className="text-sm font-bold text-primary">{flash.price}</p>
-                </div>
-                <div className="flex items-center gap-2 mt-2.5">
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Heart className="w-3 h-3" /> {flash.likes}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
+        {/* Filter pills */}
+        <div className="flex gap-1.5 overflow-x-auto pb-0.5 scrollbar-hide">
+          {PORTFOLIO_FILTERS.map(f => {
+            const count = applyGalleryFilter(items, f.id, "", "all").length;
+            return (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap border transition-all",
+                  filter === f.id
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-muted/20 text-muted-foreground border-border/50 hover:bg-muted/30 hover:text-foreground"
+                )}
+              >
+                {f.label}
+                <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center",
+                  filter === f.id ? "bg-primary-foreground/20 text-primary-foreground" : "bg-muted/50 text-muted-foreground"
+                )}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
+
+        {/* Grid */}
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 bg-card border border-border/50 rounded-xl text-center">
+            <div className="w-12 h-12 rounded-2xl bg-muted/30 flex items-center justify-center mb-3">
+              <Images className="w-5 h-5 text-muted-foreground/40" />
+            </div>
+            <p className="text-sm font-medium text-foreground">
+              {search || artistFilter !== "all" ? "Nenhum resultado encontrado" : "Nenhum trabalho neste filtro"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {search ? `Busca por "${search}"` : "Adicione um trabalho ou mude o filtro"}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+            {filtered.map((item) => (
+              <div
+                key={item.id}
+                onClick={() => setSelected(item)}
+                className="bg-card border border-border/50 rounded-2xl overflow-hidden cursor-pointer group hover:border-primary/25 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200"
+              >
+                {/* Image */}
+                <div className={cn("relative bg-gradient-to-br", item.colors)} style={{ paddingBottom: "75%" }}>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <p className="text-3xl font-black text-white/8 uppercase tracking-tighter text-center px-2 leading-none">
+                      {item.style}
+                    </p>
+                  </div>
+
+                  {/* Badges */}
+                  <div className="absolute top-2.5 left-2.5 flex gap-1 flex-wrap">
+                    {item.featured && (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-violet-500/25 text-violet-300 border border-violet-500/25 font-bold backdrop-blur-sm">
+                        Destaque
+                      </span>
+                    )}
+                    {item.exclusive && (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-amber-500/25 text-amber-300 border border-amber-500/25 font-bold backdrop-blur-sm">
+                        Exclusivo
+                      </span>
+                    )}
+                    {item.isNew && (
+                      <span className="text-[9px] px-2 py-0.5 rounded-full bg-blue-500/25 text-blue-300 border border-blue-500/25 font-bold backdrop-blur-sm">
+                        Novo
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Fav button */}
+                  <button
+                    onClick={e => toggleFav(item.id, e)}
+                    className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center hover:bg-black/50 transition-colors"
+                  >
+                    <Heart className={cn("w-3.5 h-3.5", favorites.has(item.id) ? "text-rose-400 fill-rose-400" : "text-white/60")} />
+                  </button>
+
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <div className="flex items-center gap-1.5 text-xs text-white font-medium">
+                      <Eye className="w-3.5 h-3.5" /> Ver detalhes
+                    </div>
+                  </div>
+
+                  {/* Repeatable */}
+                  {item.repeatable && (
+                    <div className="absolute bottom-2.5 right-2.5">
+                      <div className="w-5 h-5 rounded-full bg-primary/30 backdrop-blur-sm flex items-center justify-center" title="Disponível para repetir">
+                        <RefreshCw className="w-2.5 h-2.5 text-primary" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="p-3">
+                  <p className="text-sm font-bold text-foreground truncate">{item.title}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 truncate">{item.style} · {item.artist}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-xs font-bold text-primary">
+                      {item.value > 0 ? `R$ ${item.value.toLocaleString("pt-BR")}` : "—"}
+                    </span>
+                    <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-0.5"><Heart className="w-3 h-3" />{item.likes}</span>
+                      <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{item.views}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Flash Detail Modal */}
-      <Dialog open={!!selectedFlash} onOpenChange={() => setSelectedFlash(null)}>
-        <DialogContent className="sm:max-w-lg bg-card border-border">
-          <DialogHeader>
-            <DialogTitle>{selectedFlash?.name}</DialogTitle>
-          </DialogHeader>
-          {selectedFlash && (
-            <div className="space-y-4">
-              <div className={cn("h-64 rounded-xl bg-gradient-to-br flex items-center justify-center", selectedFlash.colors)}>
-                <Tag className="w-16 h-16 text-foreground/20" />
-              </div>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><span className="text-muted-foreground text-xs">Estilo</span><p className="font-medium">{selectedFlash.style}</p></div>
-                <div><span className="text-muted-foreground text-xs">Preço</span><p className="font-bold text-primary">{selectedFlash.price}</p></div>
-                <div><span className="text-muted-foreground text-xs">Artista</span><p className="font-medium">{selectedFlash.artist}</p></div>
-                <div><span className="text-muted-foreground text-xs">Status</span><p className="font-medium">{selectedFlash.status}</p></div>
-                <div><span className="text-muted-foreground text-xs">Tipo</span><p className="font-medium">{selectedFlash.exclusive ? "Exclusivo" : "Repetível"}</p></div>
-                <div><span className="text-muted-foreground text-xs">Curtidas</span><p className="font-medium">{selectedFlash.likes}</p></div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground" disabled={selectedFlash.status === "Reservado"}>
-                  {selectedFlash.status === "Reservado" ? "Reservado" : "Reservar Flash"}
-                </Button>
-                <Button variant="outline" className="flex-1">Compartilhar</Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <AddWorkModal open={showAdd} onClose={() => setShowAdd(false)} onSave={handleAdd} />
+      <WorkDetailModal
+        item={selected}
+        open={!!selected}
+        onClose={() => setSelected(null)}
+        onToggleFeatured={handleToggleFeatured}
+      />
     </div>
   );
 }
