@@ -1,3 +1,5 @@
+import { buildApiUrl } from '@/lib/api';
+
 async function parseResponse(response) {
   let data = null;
 
@@ -20,7 +22,7 @@ async function parseResponse(response) {
 
 export async function listClients(search = '') {
   const query = search.trim() ? `?search=${encodeURIComponent(search.trim())}` : '';
-  const response = await fetch(`/v1/clients${query}`, {
+  const response = await fetch(buildApiUrl(`/v1/clients${query}`), {
     method: 'GET',
     credentials: 'include',
   });
@@ -29,7 +31,7 @@ export async function listClients(search = '') {
 }
 
 export async function getClient(id) {
-  const response = await fetch(`/v1/clients/${id}`, {
+  const response = await fetch(buildApiUrl(`/v1/clients/${id}`), {
     method: 'GET',
     credentials: 'include',
   });
@@ -38,7 +40,7 @@ export async function getClient(id) {
 }
 
 export async function createClient(payload) {
-  const response = await fetch('/v1/clients', {
+  const response = await fetch(buildApiUrl('/v1/clients'), {
     method: 'POST',
     credentials: 'include',
     headers: {
@@ -51,7 +53,7 @@ export async function createClient(payload) {
 }
 
 export async function updateClient(id, payload) {
-  const response = await fetch(`/v1/clients/${id}`, {
+  const response = await fetch(buildApiUrl(`/v1/clients/${id}`), {
     method: 'PATCH',
     credentials: 'include',
     headers: {
@@ -64,7 +66,7 @@ export async function updateClient(id, payload) {
 }
 
 export async function deleteClient(id) {
-  const response = await fetch(`/v1/clients/${id}`, {
+  const response = await fetch(buildApiUrl(`/v1/clients/${id}`), {
     method: 'DELETE',
     credentials: 'include',
   });

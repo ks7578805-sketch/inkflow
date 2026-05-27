@@ -1,15 +1,14 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { SESSION_STATUS } from "@/data/calendarMock";
-import { X, Clock, MapPin, DollarSign, User, Palette, Pencil, CalendarRange, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { X, Clock, MapPin, DollarSign, User, Palette, Pencil, CalendarRange, CheckCircle, XCircle, ExternalLink, CalendarX } from "lucide-react";
 
-export default function SessionDetailPanel({ session, onClose, onStatusChange }) {
+export default function SessionDetailPanel({ session, onClose, onStatusChange, onEdit, onOpenProject, onUnschedule, isSaving = false }) {
   if (!session) return null;
   const st = SESSION_STATUS[session.status] || SESSION_STATUS["Confirmada"];
 
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
       <div className="flex items-start justify-between mb-5">
         <div className="flex items-center gap-3">
           <div className={cn("w-1 h-12 rounded-full", st.bar)} />
@@ -23,14 +22,12 @@ export default function SessionDetailPanel({ session, onClose, onStatusChange })
         </button>
       </div>
 
-      {/* Status badge */}
       <div className="mb-4">
         <span className={cn("text-[11px] font-semibold px-2.5 py-1 rounded-full border", st.color)}>
           {session.status}
         </span>
       </div>
 
-      {/* Info list */}
       <div className="space-y-0 flex-1 overflow-y-auto">
         {[
           { icon: Clock, label: "Horário", value: `${session.time} – ${session.endTime} (${session.duration}h)` },
@@ -59,13 +56,12 @@ export default function SessionDetailPanel({ session, onClose, onStatusChange })
         )}
       </div>
 
-      {/* Actions */}
       <div className="pt-4 space-y-2 border-t border-border/20 mt-2">
         <div className="grid grid-cols-2 gap-2">
-          <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5">
+          <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5" onClick={() => onEdit?.(session)} disabled={isSaving}>
             <Pencil className="w-3 h-3" /> Editar
           </Button>
-          <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5 text-amber-400 hover:text-amber-300 border-amber-500/20 hover:border-amber-500/40">
+          <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5 text-amber-400 hover:text-amber-300 border-amber-500/20 hover:border-amber-500/40" onClick={() => onEdit?.(session)} disabled={isSaving}>
             <CalendarRange className="w-3 h-3" /> Remarcar
           </Button>
         </div>
@@ -73,21 +69,28 @@ export default function SessionDetailPanel({ session, onClose, onStatusChange })
           <Button
             variant="outline" size="sm"
             className="text-xs h-8 gap-1.5 text-primary hover:text-primary/80 border-primary/20 hover:border-primary/40"
-            onClick={() => onStatusChange && onStatusChange(session.id, "Concluída")}
+            onClick={() => onStatusChange?.(session.id, "Concluída")}
+            disabled={isSaving}
           >
             <CheckCircle className="w-3 h-3" /> Concluir
           </Button>
           <Button
             variant="outline" size="sm"
             className="text-xs h-8 gap-1.5 text-destructive hover:text-destructive/80 border-destructive/20 hover:border-destructive/40"
-            onClick={() => onStatusChange && onStatusChange(session.id, "Cancelada")}
+            onClick={() => onStatusChange?.(session.id, "Cancelada")}
+            disabled={isSaving}
           >
             <XCircle className="w-3 h-3" /> Cancelar
           </Button>
         </div>
-        <Button variant="outline" size="sm" className="w-full text-xs h-8 gap-1.5">
-          <ExternalLink className="w-3 h-3" /> Abrir Projeto
-        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5" onClick={() => onOpenProject?.(session.projectId)} disabled={isSaving}>
+            <ExternalLink className="w-3 h-3" /> Abrir Projeto
+          </Button>
+          <Button variant="outline" size="sm" className="text-xs h-8 gap-1.5 text-destructive hover:text-destructive/80 border-destructive/20 hover:border-destructive/40" onClick={() => onUnschedule?.(session.projectId)} disabled={isSaving}>
+            <CalendarX className="w-3 h-3" /> Desagendar
+          </Button>
+        </div>
       </div>
     </div>
   );

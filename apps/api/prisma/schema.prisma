@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
 }
 
 enum UserRole {
@@ -21,6 +22,18 @@ enum UserStatus {
   DISABLED
 }
 
+enum StencilGenerationStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum StencilVariantKind {
+  line_only
+  light_shade
+  heavy_shade
+}
+
 model Studio {
   id        String   @id @default(cuid())
   name      String
@@ -33,9 +46,13 @@ model Studio {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users   User[]
-  artists Artist[]
-  clients Client[]
+  users              User[]
+  artists            Artist[]
+  clients            Client[]
+  projects           Project[]
+  sessions           Session[]
+  stencilAssets      StencilAsset[]
+  stencilGenerations StencilGeneration[]
 }
 
 model User {
@@ -51,9 +68,11 @@ model User {
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
-  studio       Studio       @relation(fields: [studioId], references: [id], onDelete: Cascade)
-  artist       Artist?
-  authSessions AuthSession[]
+  studio              Studio               @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  artist              Artist?
+  authSessions        AuthSession[]
+  stencilAssets       StencilAsset[]
+  stencilGenerations  StencilGeneration[]
 }
 
 model Artist {
@@ -88,12 +107,143 @@ model Client {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  studio Studio @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  studio   Studio    @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  projects Project[]
 
   @@index([studioId, firstName])
   @@index([studioId, lastName])
   @@index([studioId, email])
   @@index([studioId, phone])
+}
+
+model Project {
+  id               String   @id @default(cuid())
+  studioId         String
+  clientId         String?
+  name             String
+  clientName       String
+  artistName       String?
+  style            String?
+  bodyPart         String?
+  status           String
+  valueEstimated   Int      @default(0)
+  valueFinal       Int?
+  deposit          Int      @default(0)
+  totalPaid        Int      @default(0)
+  progress         Int      @default(0)
+  sessionsDone     Int      @default(0)
+  sessionsTotal    Int      @default(0)
+  hoursEstimated   Int      @default(0)
+  hoursReal        Int      @default(0)
+  nextSessionAt    DateTime?
+  nextSessionEndAt DateTime?
+  nextSessionStatus String?
+  notes            String?
+  thumbnailUrl     String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  studio             Studio               @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  client             Client?              @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  sessions           Session[]
+  stencilGenerations StencilGeneration[]
+
+  @@index([studioId, createdAt])
+  @@index([studioId, status])
+  @@index([studioId, clientName])
+  @@index([studioId, artistName])
+  @@index([studioId, clientId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  studioId  String
+  projectId String
+  startsAt  DateTime
+  endsAt    DateTime
+  status    String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studio  Studio  @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([studioId, startsAt])
+  @@index([projectId, startsAt])
+  @@index([studioId, status, startsAt])
+}
+
+model StencilAsset {
+  id              String   @id @default(cuid())
+  studioId        String
+  createdByUserId String
+  originalName    String
+  mimeType        String
+  sizeBytes       Int
+  width           Int?
+  height          Int?
+  storagePath     String
+  publicUrl       String
+  createdAt       DateTime @default(now())
+
+  studio      Studio              @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  createdBy   User                @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  generations StencilGeneration[]
+
+  @@index([studioId, createdAt])
+  @@index([createdByUserId, createdAt])
+}
+
+model StencilGeneration {
+  id             String                  @id @default(cuid())
+  studioId       String
+  createdByUserId String
+  assetId        String
+  projectId      String?
+  selectedStyle  String
+  lineThickness  Int
+  simplify       Int
+  layerCount     Int
+  lineColor      String
+  outputSize     String
+  analysisJson   Json?
+  status         StencilGenerationStatus @default(PENDING)
+  savedVersionId String?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+
+  studio       Studio           @relation(fields: [studioId], references: [id], onDelete: Cascade)
+  createdBy    User             @relation(fields: [createdByUserId], references: [id], onDelete: Cascade)
+  asset        StencilAsset     @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  project      Project?         @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  versions     StencilVersion[] @relation("StencilGenerationVersions")
+  savedVersion StencilVersion?  @relation("StencilSavedVersion", fields: [savedVersionId], references: [id], onDelete: SetNull)
+
+  @@index([studioId, createdAt])
+  @@index([assetId])
+  @@index([projectId])
+}
+
+model StencilVersion {
+  id            String             @id @default(cuid())
+  generationId  String
+  kind          StencilVariantKind
+  label         String
+  mimeType      String
+  width         Int?
+  height        Int?
+  storagePath   String
+  publicUrl     String
+  metadataJson  Json?
+  savedAt       DateTime?
+  createdAt     DateTime           @default(now())
+
+  generation            StencilGeneration  @relation("StencilGenerationVersions", fields: [generationId], references: [id], onDelete: Cascade)
+  selectedInGenerations StencilGeneration[] @relation("StencilSavedVersion")
+
+  @@index([generationId, createdAt])
+  @@unique([generationId, kind])
 }
 
 model AuthSession {

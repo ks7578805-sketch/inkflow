@@ -1,8 +1,9 @@
 import { useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
+import { buildApiUrl } from '@/lib/api';
 
 async function getCurrentUser() {
-  const response = await fetch('/v1/auth/me', {
+  const response = await fetch(buildApiUrl('/v1/auth/me'), {
     method: 'GET',
     credentials: 'include',
   });

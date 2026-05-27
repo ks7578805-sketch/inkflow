@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LogIn, Mail, Lock, Loader2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
+import { buildApiUrl } from "@/lib/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -18,7 +19,7 @@ export default function Login() {
     setError("");
     setLoading(true);
     try {
-      const response = await fetch('/v1/auth/login', {
+      const response = await fetch(buildApiUrl('/v1/auth/login'), {
         method: 'POST',
         credentials: 'include',
         headers: {

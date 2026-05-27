@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Clock, Layers, User, MapPin, Zap } from "lucide-react";
-import { STATUS_COLORS } from "@/data/projectsMock";
+import { STATUS_COLORS } from "@/lib/projects";
 
 const BADGE_COLORS = {
   "Healing em andamento": "bg-teal-500/10 text-teal-400",
@@ -14,8 +14,6 @@ const BADGE_COLORS = {
 };
 
 export default function ProjectCard({ project, selected, onClick }) {
-  const pct = project.totalPaid / (project.valueFinal || project.valueEstimated || 1) * 100;
-
   return (
     <div
       onClick={onClick}
@@ -23,10 +21,9 @@ export default function ProjectCard({ project, selected, onClick }) {
         "group relative bg-card border rounded-xl p-4 cursor-pointer transition-all duration-200",
         selected
           ? "border-primary/40 bg-primary/5 shadow-[0_0_0_1px_hsl(var(--primary)/0.2)]"
-          : "border-border/50 hover:border-border hover:bg-card/80"
+          : "border-border/50 hover:border-border hover:bg-card/80",
       )}
     >
-      {/* Top row */}
       <div className="flex items-start gap-3 mb-3">
         {project.thumbnail ? (
           <img src={project.thumbnail} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity" />
@@ -53,7 +50,6 @@ export default function ProjectCard({ project, selected, onClick }) {
         </div>
       </div>
 
-      {/* Progress bar */}
       <div className="mb-2.5">
         <div className="flex justify-between items-center mb-1">
           <span className="text-[10px] text-muted-foreground">{project.style}</span>
@@ -62,7 +58,6 @@ export default function ProjectCard({ project, selected, onClick }) {
         <Progress value={project.progress} className="h-1 bg-muted/30" />
       </div>
 
-      {/* Stats row */}
       <div className="flex items-center gap-3 text-[11px] text-muted-foreground mb-2.5">
         <span className="flex items-center gap-1"><Layers className="w-3 h-3" /> {project.sessions.done}/{project.sessions.total}</span>
         <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {project.hoursReal}h/{project.hoursEstimated}h</span>
@@ -71,12 +66,11 @@ export default function ProjectCard({ project, selected, onClick }) {
         </span>
       </div>
 
-      {/* Badges */}
       {project.badges.length > 0 && (
         <div className="flex flex-wrap gap-1">
-          {project.badges.slice(0, 2).map((b) => (
-            <span key={b} className={cn("text-[10px] px-1.5 py-0.5 rounded font-medium", BADGE_COLORS[b] || "bg-muted text-muted-foreground")}>
-              {b}
+          {project.badges.slice(0, 2).map((badge) => (
+            <span key={badge} className={cn("text-[10px] px-1.5 py-0.5 rounded font-medium", BADGE_COLORS[badge] || "bg-muted text-muted-foreground")}>
+              {badge}
             </span>
           ))}
           {project.badges.length > 2 && (

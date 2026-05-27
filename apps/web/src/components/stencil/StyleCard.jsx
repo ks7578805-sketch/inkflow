@@ -10,7 +10,7 @@ const STYLES = [
     badge: "Delicado",
     badgeColor: "text-sky-400 bg-sky-400/10 border-sky-400/20",
     preview: {
-      photo: "https://images.unsplash.com/photo-1563804951775-881a23df7dd3?w=300&q=70",
+      photo: "https://images.unsplash.com/photo-1510074377623-8cf13fb86c08?auto=format&fit=crop&w=300&q=70",
       desc: "Traços finos e precisos, ideal para designs detalhados",
     },
   },
@@ -21,7 +21,7 @@ const STYLES = [
     badge: "Intenso",
     badgeColor: "text-orange-400 bg-orange-400/10 border-orange-400/20",
     preview: {
-      photo: "https://images.unsplash.com/photo-1598662972299-5408ddb8a3dc?w=300&q=70",
+      photo: "https://images.unsplash.com/photo-1542727365-19732a80dcfd?auto=format&fit=crop&w=300&q=70",
       desc: "Linhas grossas, presença forte e boa legibilidade",
     },
   },
@@ -32,7 +32,7 @@ const STYLES = [
     badge: "Textura",
     badgeColor: "text-violet-400 bg-violet-400/10 border-violet-400/20",
     preview: {
-      photo: "https://images.unsplash.com/photo-1567593810070-7a3d471af022?w=300&q=70",
+      photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&q=70",
       desc: "Composição por pontos, gradientes únicos",
     },
   },
@@ -43,7 +43,7 @@ const STYLES = [
     badge: "Clássico",
     badgeColor: "text-amber-400 bg-amber-400/10 border-amber-400/20",
     preview: {
-      photo: "https://images.unsplash.com/photo-1609610635720-61d9d0d0dfea?w=300&q=70",
+      photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=300&q=70",
       desc: "Estilo americano clássico, contrastes marcantes",
     },
   },
@@ -54,7 +54,7 @@ const STYLES = [
     badge: "Moderno",
     badgeColor: "text-teal-400 bg-teal-400/10 border-teal-400/20",
     preview: {
-      photo: "https://images.unsplash.com/photo-1510074377623-8cf13fb86c08?w=300&q=70",
+      photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=70",
       desc: "Padrões geométricos precisos e contemporâneos",
     },
   },
@@ -65,7 +65,7 @@ const STYLES = [
     badge: "Detalhado",
     badgeColor: "text-rose-400 bg-rose-400/10 border-rose-400/20",
     preview: {
-      photo: "https://images.unsplash.com/photo-1548142813-c348350df52b?w=300&q=70",
+      photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=70",
       desc: "Alta fidelidade, preserva detalhes complexos",
     },
   },

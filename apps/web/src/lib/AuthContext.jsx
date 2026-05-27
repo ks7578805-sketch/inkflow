@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { buildApiUrl } from '@/lib/api';
 
 const AuthContext = createContext();
 
@@ -37,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   const checkUserAuth = useCallback(async () => {
     setIsLoadingAuth(true);
     try {
-      const data = await parseJsonResponse(await fetch('/v1/auth/me', {
+      const data = await parseJsonResponse(await fetch(buildApiUrl('/v1/auth/me'), {
         method: 'GET',
         credentials: 'include',
       }));
@@ -69,7 +70,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = useCallback(async (shouldRedirect = true) => {
     try {
-      await fetch('/v1/auth/logout', {
+      await fetch(buildApiUrl('/v1/auth/logout'), {
         method: 'POST',
         credentials: 'include',
       });

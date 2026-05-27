@@ -23,24 +23,27 @@ export function useImageUpload({ onSuccess, onError }) {
   const loadFile = useCallback((file) => {
     if (!validateFile(file)) return;
     const url = URL.createObjectURL(file);
-    onSuccess?.({
-      url,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      width: null,
-      height: null,
-    });
-    // get dimensions
     const img = new Image();
     img.onload = () => {
       onSuccess?.({
+        file,
         url,
         name: file.name,
         size: file.size,
         type: file.type,
         width: img.naturalWidth,
         height: img.naturalHeight,
+      });
+    };
+    img.onerror = () => {
+      onSuccess?.({
+        file,
+        url,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        width: null,
+        height: null,
       });
     };
     img.src = url;

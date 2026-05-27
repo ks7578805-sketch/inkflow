@@ -6,6 +6,9 @@ import { UsersModule } from './modules/users/users.module';
 import { StudiosModule } from './modules/studios/studios.module';
 import { ArtistsModule } from './modules/artists/artists.module';
 import { ClientsModule } from './modules/clients/clients.module';
+import { ProjectsModule } from './modules/projects/projects.module';
+import { SessionsModule } from './modules/sessions/sessions.module';
+import { StencilModule } from './modules/stencil/stencil.module';
 
 @Module({
   imports: [
@@ -16,6 +19,9 @@ import { ClientsModule } from './modules/clients/clients.module';
     StudiosModule,
     ArtistsModule,
     ClientsModule,
+    ProjectsModule,
+    SessionsModule,
+    StencilModule,
   ],
 })
 export class AppModule {}

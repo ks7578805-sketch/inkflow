@@ -4,8 +4,8 @@
     "declaration": false,
     "sourceMap": true,
     "noEmit": false,
-    "rootDir": "./src"
+    "rootDir": "../.."
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "../../packages/contracts/src/**/*.ts"],
   "exclude": ["node_modules", "dist", "test", "**/*.spec.ts"]
 }

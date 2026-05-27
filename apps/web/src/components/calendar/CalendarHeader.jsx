@@ -4,7 +4,6 @@ import { ChevronLeft, ChevronRight, Plus, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ARTISTS } from "@/data/calendarMock";
 
 const VIEWS = [
   { id: "day", label: "Dia" },
@@ -31,7 +30,7 @@ function navigate(date, view, dir) {
   return addMonths(date, dir);
 }
 
-export default function CalendarHeader({ date, view, artist, onDateChange, onViewChange, onArtistChange, onNewSession }) {
+export default function CalendarHeader({ date, view, artist, artistOptions, onDateChange, onViewChange, onArtistChange, onNewSession }) {
   const label = formatDateLabel(date, view);
   const isToday = format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
 
@@ -81,8 +80,8 @@ export default function CalendarHeader({ date, view, artist, onDateChange, onVie
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {ARTISTS.map((a) => (
-                <SelectItem key={a.id} value={a.id} className="text-xs">{a.name}</SelectItem>
+              {artistOptions.map((artistOption) => (
+                <SelectItem key={artistOption.id} value={artistOption.id} className="text-xs">{artistOption.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>

@@ -2,16 +2,26 @@ import { Save, Download, History, CheckCircle2, Lock, FileOutput, Layers } from 
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
-const versionHistory = [
-  { id: 1, label: "Clean", desc: "Fine Line · Alta resolução", time: "Agora" },
-  { id: 2, label: "Bold", desc: "Bold Line · Média resolução", time: "5 min" },
-  { id: 3, label: "Detailed", desc: "Realismo · Alta resolução", time: "12 min" },
-];
+const VARIANT_PRESENTATION = {
+  line_only: {
+    label: "Fine Lines",
+    description: "Contornos limpos, pouca sombra",
+  },
+  light_shade: {
+    label: "Soft Shade",
+    description: "Volume leve, leitura equilibrada",
+  },
+  heavy_shade: {
+    label: "Rich Shade",
+    description: "Mais profundidade e massa visual",
+  },
+};
 
-function ActionBtn({ icon: Icon, label, sublabel, disabled }) {
+function ActionBtn({ icon: Icon, label, sublabel, disabled, onClick }) {
   return (
     <button
       disabled={disabled}
+      onClick={onClick}
       className={cn(
         "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border text-left transition-all duration-150 group",
         disabled
@@ -42,7 +52,7 @@ function ActionBtn({ icon: Icon, label, sublabel, disabled }) {
   );
 }
 
-export default function StencilRightPanel({ hasResult, selectedVersion, setSelectedVersion, selectedStyle, isMobile = false }) {
+export default function StencilRightPanel({ hasResult, selectedVersion, setSelectedVersion, selectedStyle, versions = [], selectedVersionData = null, onSave, onExportPdf, onExportPng, isMobile = false }) {
   const content = (<>
       {/* Actions */}
       <div className="bg-card border border-border/50 rounded-xl flex-shrink-0">
@@ -50,9 +60,9 @@ export default function StencilRightPanel({ hasResult, selectedVersion, setSelec
           <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Ações</span>
         </div>
         <div className="p-3 space-y-1.5">
-          <ActionBtn icon={Save} label="Salvar Versão" sublabel="Salvar no projeto" disabled={!hasResult} />
-          <ActionBtn icon={FileOutput} label="Exportar PDF" sublabel="Formato A4" disabled={!hasResult} />
-          <ActionBtn icon={Download} label="Exportar PNG" sublabel="Alta resolução" disabled={!hasResult} />
+          <ActionBtn icon={Save} label="Salvar Versão" sublabel="Salvar no projeto" disabled={!hasResult || !selectedVersionData} onClick={onSave} />
+          <ActionBtn icon={FileOutput} label="Exportar PDF" sublabel="Formato A4" disabled={!hasResult || !selectedVersionData} onClick={onExportPdf} />
+          <ActionBtn icon={Download} label="Exportar PNG" sublabel="Alta resolução" disabled={!hasResult || !selectedVersionData} onClick={onExportPng} />
         </div>
         {!hasResult && (
           <p className="text-[10px] text-muted-foreground/30 text-center pb-3 px-3 leading-relaxed">
@@ -94,7 +104,7 @@ export default function StencilRightPanel({ hasResult, selectedVersion, setSelec
                 exit={{ opacity: 0 }}
                 className="space-y-1.5"
               >
-                {versionHistory.map((v) => {
+                {versions.map((v) => {
                   const active = selectedVersion === v.id;
                   return (
                     <button
@@ -109,12 +119,14 @@ export default function StencilRightPanel({ hasResult, selectedVersion, setSelec
                     >
                       <div className="flex items-center justify-between mb-0.5">
                         <p className={cn("font-semibold text-[11px]", active ? "text-primary" : "text-foreground/75")}>
-                          {v.label}
+                          {VARIANT_PRESENTATION[v.kind]?.label || v.label}
                         </p>
                         {active && <CheckCircle2 className="w-3 h-3 text-primary" />}
                       </div>
-                      <p className="text-[10px] text-muted-foreground/50 leading-snug">{v.desc}</p>
-                      <p className="text-[9px] text-muted-foreground/30 mt-0.5">{v.time} atrás</p>
+                      <p className="text-[10px] text-muted-foreground/50 leading-snug">
+                        {VARIANT_PRESENTATION[v.kind]?.description || v.kind}
+                      </p>
+                      <p className="text-[9px] text-muted-foreground/30 mt-0.5">{new Date(v.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</p>
                     </button>
                   );
                 })}
@@ -138,12 +150,12 @@ export default function StencilRightPanel({ hasResult, selectedVersion, setSelec
             </div>
             <div className="p-4 space-y-1.5">
               {[
-                { label: "Resolução", value: "2480×3508" },
-                { label: "Estilo", value: "Fine Line" },
-                { label: "Espessura", value: "50%" },
-                { label: "Formato", value: "A4" },
-                { label: "Gerado em", value: "12s" },
-                { label: "Modelo", value: "StencilNet v2" },
+                { label: 'Resolução', value: selectedVersionData?.width && selectedVersionData?.height ? `${selectedVersionData.width}×${selectedVersionData.height}` : '—' },
+                { label: 'Estilo', value: selectedVersionData?.metadata?.preset || selectedStyle || '—' },
+                { label: 'Espessura', value: selectedVersionData?.metadata ? `${selectedVersionData.metadata.lineThickness}%` : '—' },
+                { label: 'Formato', value: selectedVersionData?.metadata?.outputSize || '—' },
+                { label: 'Camadas', value: selectedVersionData?.metadata ? `${selectedVersionData.metadata.layerCount}` : '—' },
+                { label: 'Variante', value: selectedVersionData ? (VARIANT_PRESENTATION[selectedVersionData.kind]?.label || selectedVersionData.kind) : '—' },
               ].map((item) => (
                 <div key={item.label} className="flex justify-between items-center py-1 border-b border-border/10 last:border-0">
                   <span className="text-[10px] text-muted-foreground/45">{item.label}</span>

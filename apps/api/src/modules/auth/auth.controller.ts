@@ -3,7 +3,11 @@ import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import type { LoginRequest } from './auth.types';
 
-const SESSION_COOKIE = 'inkflow_session';
+const SESSION_COOKIE = process.env.SESSION_COOKIE_NAME?.trim() || 'inkflow_session';
+
+function isCrossSiteCookie() {
+  return process.env.NODE_ENV === 'production';
+}
 
 @Controller('auth')
 export class AuthController {
@@ -16,7 +20,7 @@ export class AuthController {
 
     res.cookie(SESSION_COOKIE, token, {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: isCrossSiteCookie() ? 'none' : 'lax',
       secure: process.env.NODE_ENV === 'production',
       expires: expiresAt,
       path: '/',
@@ -32,7 +36,7 @@ export class AuthController {
     await this.authService.logout(token);
     res.clearCookie(SESSION_COOKIE, {
       httpOnly: true,
-      sameSite: 'lax',
+      sameSite: isCrossSiteCookie() ? 'none' : 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
     });
