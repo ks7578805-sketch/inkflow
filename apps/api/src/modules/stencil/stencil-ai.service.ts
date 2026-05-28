@@ -255,11 +255,11 @@ export class StencilAiService {
   }
 
   private buildVariantPrompt(kind: StencilVariantKind, controls: CreateStencilGenerationRequest, analysis: StencilPrecheckAnalysis) {
-    const variantInstruction = {
+    const variantInstruction = ({
       line_only: 'Create a tattoo stencil focused on fine clean contours, primary structure, and minimal shading.',
       light_shade: 'Create a tattoo stencil with clean lines and soft gray shading that preserves useful volume.',
       heavy_shade: 'Create a tattoo stencil with clean lines and richer gray shading that preserves depth and strong shadow masses.',
-    }[kind];
+    } as Record<StencilVariantKind, string>)[kind];
 
     const hintText = analysis.styleHints.length ? analysis.styleHints.join(', ') : 'Keep the composition readable and balanced.';
     const warningText = analysis.warnings.length ? analysis.warnings.join(', ') : 'Avoid clutter and incidental artifacts.';
