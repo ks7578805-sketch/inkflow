@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "cd ../.. && rm -rf node_modules/.pnpm/@vercel+blob@0.27.3 node_modules/@vercel/blob && pnpm install",
+  "installCommand": "rm -rf node_modules/@vercel && pnpm install",
   "buildCommand": "prisma generate --schema=./prisma/schema.prisma",
   "outputDirectory": "public",
   "functions": {
