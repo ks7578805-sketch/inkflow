@@ -34,6 +34,14 @@
     --chart-4: 35 90% 55%;
     --chart-5: 340 75% 55%;
     --radius: 0.75rem;
+
+    /* Semantic status colors (raw HSL — wrap with hsl() when used in CSS) */
+    --status-success: 160 84% 39%;   /* emerald — mirrors --primary */
+    --status-warning: 38 92% 50%;    /* amber */
+    --status-error: 0 72% 51%;       /* red — mirrors --destructive */
+    --status-info: 210 70% 50%;      /* blue */
+    --status-pending: 270 65% 60%;   /* violet */
+
     --sidebar-background: 220 15% 6%;
     --sidebar-foreground: 210 20% 80%;
     --sidebar-primary: 160 84% 39%;
@@ -79,6 +87,12 @@
     --sidebar-ring: 160 84% 39%;
   }
 }
+
+/* Canonical opacity scale for status and interactive surfaces:
+   /10 → status background
+   /20 → status border, hover subtle
+   /40 → selected border
+   /80 → overlay / backdrop                                     */
 
 @layer base {
   * {
