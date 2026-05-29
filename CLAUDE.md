@@ -132,6 +132,13 @@ pnpm --filter web build
 - Preferir correções localizadas a mudanças amplas
 
 ## Regras operacionais
+
+### REGRAS CRÍTICAS DE PRODUÇÃO — NUNCA ALTERAR:
+- `apps/api/package.json`: `@vercel/blob` deve permanecer `"^2.4.0"`
+- `apps/api/src/modules/stencil/stencil.storage.ts`: `access` deve permanecer `'private'`
+- `apps/api/vercel.json`: `installCommand` deve ser `"rm -rf node_modules/@vercel && pnpm install"`
+- Qualquer alteração nesses 3 pontos quebra o upload de stencil em produção.
+
 - Não trocar `DATABASE_URL` do Inkflow para `5432`
 - Não assumir que erros de login são sempre frontend; verificar também cookie, CORS, sessão, seed, Prisma e `.env`
 - Em mudanças de autenticação, validar sempre:

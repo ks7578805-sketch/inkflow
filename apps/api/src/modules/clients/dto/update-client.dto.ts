@@ -30,4 +30,9 @@ export class UpdateClientDto {
   @IsString()
   @MaxLength(4000)
   notes?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  pipelineStatus?: string;
 }

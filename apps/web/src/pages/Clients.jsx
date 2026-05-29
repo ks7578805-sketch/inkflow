@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Users } from "lucide-react";
+import { Search, Plus, Users, LayoutList, Kanban } from "lucide-react";
 import Topbar from "@/components/layout/Topbar";
 import ClientDetailPanel from "@/components/clients/ClientDetailPanel";
+import ClientPipelineView from "@/components/clients/ClientPipelineView";
 import NewClientModal from "@/components/clients/NewClientModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +44,7 @@ export default function Clients() {
   const [modalMode, setModalMode] = useState("create");
   const [modalOpen, setModalOpen] = useState(false);
   const [editingClient, setEditingClient] = useState(null);
+  const [view, setView] = useState("list");
 
   const clientsQuery = useQuery({
     queryKey: ["clients", search.trim()],
@@ -157,6 +159,28 @@ export default function Clients() {
               className="pl-9 h-9 bg-secondary/50 border-border/50 text-sm"
             />
           </div>
+          <div className="flex items-center gap-1 border border-border/50 rounded-lg p-0.5 bg-muted/20">
+            <button
+              onClick={() => setView("list")}
+              className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-md transition-colors",
+                view === "list" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Visualização em lista"
+            >
+              <LayoutList className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setView("pipeline")}
+              className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-md transition-colors",
+                view === "pipeline" ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Visualização em pipeline"
+            >
+              <Kanban className="w-4 h-4" />
+            </button>
+          </div>
           <Button
             size="sm"
             onClick={openCreateModal}
@@ -181,7 +205,19 @@ export default function Clients() {
           ))}
         </div>
 
-        <div className="flex-1 flex gap-4 min-h-0" style={{ height: "calc(100vh - 250px)" }}>
+        {view === "pipeline" && (
+          <div className="flex-1 min-h-0" style={{ height: "calc(100vh - 220px)" }}>
+            <ClientPipelineView
+              clients={clients}
+              onClientClick={(id) => {
+                setView("list");
+                setSelectedId(id);
+              }}
+            />
+          </div>
+        )}
+
+        <div className={cn("flex gap-4 min-h-0", view === "pipeline" ? "hidden" : "flex-1")} style={{ height: "calc(100vh - 250px)" }}>
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             <div className="hidden md:flex flex-col flex-1 bg-card border border-border/50 rounded-xl overflow-hidden">
               <div className="grid grid-cols-[2fr_1.5fr_140px] gap-0 border-b border-border/30 bg-muted/20 px-4 py-2.5">
@@ -316,6 +352,8 @@ export default function Clients() {
             </div>
           )}
         </div>
+
+
       </div>
 
       {selectedId && selectedClient && (

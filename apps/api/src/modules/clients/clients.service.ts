@@ -66,6 +66,7 @@ export class ClientsService {
         ...(dto.email !== undefined ? { email: this.normalizeEmail(dto.email) } : {}),
         ...(dto.instagram !== undefined ? { instagram: this.normalizeInstagram(dto.instagram) } : {}),
         ...(dto.notes !== undefined ? { notes: this.normalizeOptional(dto.notes) } : {}),
+        ...(dto.pipelineStatus !== undefined ? { pipelineStatus: dto.pipelineStatus } : {}),
       },
     });
   }

@@ -96,16 +96,17 @@ model Artist {
 }
 
 model Client {
-  id        String   @id @default(cuid())
-  studioId  String
-  firstName String
-  lastName  String
-  phone     String?
-  email     String?
-  instagram String?
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(cuid())
+  studioId       String
+  firstName      String
+  lastName       String
+  phone          String?
+  email          String?
+  instagram      String?
+  notes          String?
+  pipelineStatus String   @default("Interesse")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   studio   Studio    @relation(fields: [studioId], references: [id], onDelete: Cascade)
   projects Project[]
@@ -114,6 +115,7 @@ model Client {
   @@index([studioId, lastName])
   @@index([studioId, email])
   @@index([studioId, phone])
+  @@index([studioId, pipelineStatus])
 }
 
 model Project {
