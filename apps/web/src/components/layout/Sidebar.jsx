@@ -25,62 +25,75 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
   return (
     <aside className={cn(
-      "fixed left-0 top-0 h-screen bg-sidebar border-r border-sidebar-border flex flex-col z-50 transition-all duration-300",
+      "fixed left-0 top-0 h-screen border-r border-sidebar-border flex flex-col z-50 transition-all duration-300 overflow-hidden",
       collapsed ? "w-[72px]" : "w-[240px]"
     )}>
-      {/* Logo */}
-      <div className="h-16 flex items-center px-5 border-b border-sidebar-border">
-        <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-            <Wand2 className="w-4 h-4 text-primary" />
+      {/* Background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/images/studio-bg-vertical.png')" }}
+      />
+      {/* Dark overlay — 90% opacity */}
+      <div className="absolute inset-0 bg-[#0d0f14]/90" />
+
+      {/* Content above overlay */}
+      <div className="relative z-10 flex flex-col h-full">
+
+        {/* Logo */}
+        <div className="h-16 flex items-center px-5 border-b border-white/5">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <Wand2 className="w-4 h-4 text-primary" />
+            </div>
+            {!collapsed && (
+              <span className="font-bold text-lg text-white tracking-tight whitespace-nowrap">
+                InkFlow
+              </span>
+            )}
           </div>
-          {!collapsed && (
-            <span className="font-bold text-lg text-foreground tracking-tight whitespace-nowrap">
-              InkFlow
-            </span>
-          )}
         </div>
-      </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-        {menuItems.map((item) => {
-          const isActive = location.pathname === item.path || 
-            (item.path !== "/" && location.pathname.startsWith(item.path));
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
-                isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              )}
-            >
-              <item.icon className={cn(
-                "w-[18px] h-[18px] flex-shrink-0",
-                isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
-              )} />
-              {!collapsed && (
-                <span className="whitespace-nowrap">{item.label}</span>
-              )}
-              {isActive && !collapsed && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
+        {/* Navigation */}
+        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
+          {menuItems.map((item) => {
+            const isActive = location.pathname === item.path ||
+              (item.path !== "/" && location.pathname.startsWith(item.path));
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={cn(
+                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group",
+                  isActive
+                    ? "bg-primary/15 text-primary"
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
+                )}
+              >
+                <item.icon className={cn(
+                  "w-[18px] h-[18px] flex-shrink-0",
+                  isActive ? "text-primary" : "text-white/40 group-hover:text-white"
+                )} />
+                {!collapsed && (
+                  <span className="whitespace-nowrap">{item.label}</span>
+                )}
+                {isActive && !collapsed && (
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
 
-      {/* Collapse button */}
-      <div className="p-3 border-t border-sidebar-border">
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-center py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-sidebar-accent transition-colors"
-        >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+        {/* Collapse button */}
+        <div className="p-3 border-t border-white/5">
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="w-full flex items-center justify-center py-2 rounded-lg text-white/30 hover:text-white hover:bg-white/5 transition-colors"
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+        </div>
+
       </div>
     </aside>
   );
