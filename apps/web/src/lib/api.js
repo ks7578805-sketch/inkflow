@@ -7,7 +7,7 @@ export function buildApiUrl(path) {
     return path;
   }
 
-  if (/^https?:\/\//i.test(path)) {
+  if (/^(https?|blob|data):/i.test(path)) {
     return path;
   }
 

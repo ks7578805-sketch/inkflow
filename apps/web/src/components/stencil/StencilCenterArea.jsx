@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { buildApiUrl } from "@/lib/api";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Wand2,
@@ -188,7 +189,7 @@ export default function StencilCenterArea({
     setStencilOpacity([100]);
   }, [selectedVersion?.id]);
 
-  const imageUrl = image?.publicUrl || image?.url;
+  const imageUrl = (image?.publicUrl ? buildApiUrl(image.publicUrl) : null) || image?.url;
 
   return (
     <div
@@ -388,7 +389,7 @@ export default function StencilCenterArea({
 
             <SharedPreviewStage
               imageUrl={imageUrl}
-              stencilUrl={selectedVersion?.publicUrl}
+              stencilUrl={buildApiUrl(selectedVersion?.publicUrl)}
               selectedVersion={selectedVersion}
               mode={previewMode}
               dividerX={dividerX}
