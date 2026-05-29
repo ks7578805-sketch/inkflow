@@ -18,7 +18,7 @@ export class StencilController {
   async uploadAsset(
     @CurrentUser() user: AuthUser,
     @UploadedFile(new ParseFilePipeBuilder()
-      .addFileTypeValidator({ fileType: /(jpeg|jpg|png|webp)$/i })
+      .addFileTypeValidator({ fileType: /(jpeg|jpg|png|webp)$/i, skipMagicNumbersValidation: true })
       .build({ fileIsRequired: true }))
     file: Express.Multer.File,
   ) {
