@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, Loader2 } from "lucide-react";
+import { Mail, Lock, Loader2, ArrowRight } from "lucide-react";
 import { buildApiUrl } from "@/lib/api";
-
-const PHOTOS = [
-  "/images/studio-bg-horizontal.png",
-  "/images/studio-bg-vertical.png",
-  "/images/login-bg.png",
-];
 
 export default function Login() {
   const navigate = useNavigate();
@@ -31,15 +25,9 @@ export default function Login() {
       });
 
       let data = null;
-      try {
-        data = await response.json();
-      } catch {
-        data = null;
-      }
+      try { data = await response.json(); } catch { data = null; }
 
-      if (!response.ok) {
-        throw new Error(data?.message || "Email ou senha inválidos");
-      }
+      if (!response.ok) throw new Error(data?.message || "Email ou senha inválidos");
 
       navigate("/", { replace: true });
       window.location.reload();
@@ -52,268 +40,195 @@ export default function Login() {
 
   const inputStyle = (focused) => ({
     width: "100%",
-    height: "46px",
-    paddingLeft: "42px",
+    height: "48px",
+    paddingLeft: "44px",
     paddingRight: "14px",
-    background: "#141820",
-    border: focused ? "1px solid #1db884" : "1px solid rgba(29,184,132,0.3)",
+    background: "rgba(255,255,255,0.05)",
+    border: focused ? "1px solid rgba(29,184,132,0.8)" : "1px solid rgba(255,255,255,0.12)",
     borderRadius: "12px",
     color: "white",
     outline: "none",
-    boxShadow: focused ? "0 0 0 2px rgba(29,184,132,0.3)" : "none",
+    boxShadow: focused ? "0 0 0 2px rgba(29,184,132,0.25)" : "none",
     fontSize: "14px",
+    letterSpacing: "0.01em",
     transition: "border-color 0.15s, box-shadow 0.15s",
   });
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        width: "100%",
-        position: "relative",
-        display: "flex",
-        overflow: "hidden",
-      }}
-    >
-      {/* Full-screen background */}
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          backgroundImage: "url('/images/login-bg.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)" }} />
+    <div style={{ minHeight: "100vh", width: "100%", position: "relative", display: "flex", overflow: "hidden" }}>
+
+      {/* ── Full-screen background ── */}
+      <div style={{
+        position: "absolute", inset: 0,
+        backgroundImage: "url('/images/studio-bg-vertical.png')",
+        backgroundSize: "cover", backgroundPosition: "center",
+      }} />
+      <div style={{ position: "absolute", inset: 0, background: "rgba(4,8,12,0.72)" }} />
 
       {/* ── Left panel ── */}
-      <div
-        style={{
-          flex: 1,
-          position: "relative",
-          zIndex: 10,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          padding: "48px",
-        }}
-        className="hidden lg:flex"
-      >
-        {/* Photo grid */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gridTemplateRows: "220px 200px",
-            gap: "14px",
-            maxWidth: "520px",
-            width: "100%",
-          }}
-        >
-          {/* Wide top photo */}
-          <div
-            style={{
-              gridColumn: "1 / -1",
-              borderRadius: "18px",
-              overflow: "hidden",
-              border: "1px solid rgba(255,255,255,0.1)",
-            }}
-          >
-            <img
-              src={PHOTOS[0]}
-              alt=""
-              style={{ width: "100%", height: "100%", objectFit: "cover" }}
-            />
-          </div>
-          {/* Two bottom photos */}
-          {PHOTOS.slice(1).map((src, i) => (
-            <div
-              key={i}
-              style={{
-                borderRadius: "18px",
-                overflow: "hidden",
-                border: "1px solid rgba(255,255,255,0.1)",
-              }}
-            >
-              <img
-                src={src}
-                alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover" }}
-              />
+      <div style={{
+        flex: 1, position: "relative", zIndex: 10,
+        display: "flex", flexDirection: "column",
+        justifyContent: "space-between",
+        padding: "48px",
+      }}>
+
+        {/* 3 photo cards */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "14px", maxWidth: "480px" }}>
+          {/* Row 1: two cards */}
+          <div style={{ display: "flex", gap: "14px" }}>
+            <div style={{
+              flex: 1, height: "180px", borderRadius: "16px", overflow: "hidden",
+              border: "1px solid rgba(255,255,255,0.08)",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+            }}>
+              <img src="/images/studio-bg-horizontal.png" alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "0% 50%" }} />
             </div>
-          ))}
+            <div style={{
+              flex: 1, height: "180px", borderRadius: "16px", overflow: "hidden",
+              border: "1px solid rgba(255,255,255,0.08)",
+              boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+            }}>
+              <img src="/images/studio-bg-horizontal.png" alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 50%" }} />
+            </div>
+          </div>
+
+          {/* Row 2: one wide card */}
+          <div style={{
+            height: "160px", borderRadius: "16px", overflow: "hidden",
+            border: "1px solid rgba(255,255,255,0.08)",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
+          }}>
+            <img src="/images/studio-bg-horizontal.png" alt=""
+              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "100% 50%" }} />
+          </div>
         </div>
 
-        {/* Bottom branding */}
+        {/* Bottom-left branding */}
         <div>
-          <h2
-            style={{
-              color: "white",
-              fontWeight: "700",
-              fontSize: "38px",
-              lineHeight: 1.2,
-              letterSpacing: "-0.5px",
-            }}
-          >
-            Seu estúdio,<br />do jeito certo.
-          </h2>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.6)",
-              marginTop: "10px",
-              fontSize: "16px",
-            }}
-          >
-            Gestão completa para tatuadores profissionais
+          <p style={{ color: "#1db884", fontSize: "11px", fontWeight: "600", letterSpacing: "0.15em", marginBottom: "8px" }}>
+            BEM-VINDO AO
           </p>
+          <h2 style={{ color: "white", fontSize: "42px", fontWeight: "800", letterSpacing: "-0.5px", lineHeight: 1.1, margin: 0 }}>
+            TATTOO FLOW
+          </h2>
+          <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "14px", marginTop: "12px", lineHeight: 1.6, maxWidth: "320px" }}>
+            Plataforma completa para gestão de estúdios de tatuagem profissionais.
+          </p>
+          <a href="#"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              color: "#1db884", fontSize: "13px", fontWeight: "600",
+              letterSpacing: "0.08em", marginTop: "16px", textDecoration: "none",
+              transition: "opacity 0.15s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.7")}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+          >
+            SAIBA MAIS <ArrowRight style={{ width: "14px", height: "14px" }} />
+          </a>
         </div>
       </div>
 
       {/* ── Right panel — login card ── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "32px 48px",
-          position: "relative",
-          zIndex: 10,
-          minWidth: "440px",
-        }}
-        className="flex-1 lg:flex-none"
-      >
-        <div
-          style={{
-            background: "rgba(13, 15, 20, 0.92)",
-            border: "1px solid rgba(29, 184, 132, 0.3)",
-            borderRadius: "24px",
-            padding: "48px",
-            width: "420px",
-            maxWidth: "100%",
-          }}
-        >
-          {/* Logo image */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "32px" }}>
-            <img
-              src="/images/LOGO.png"
-              alt="InkFlow"
-              style={{ maxWidth: "180px", mixBlendMode: "screen" }}
-            />
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "40px 56px", position: "relative", zIndex: 10, minWidth: "460px",
+      }}>
+        <div style={{
+          background: "rgba(8, 12, 18, 0.88)",
+          border: "1px solid rgba(29,184,132,0.22)",
+          borderRadius: "24px",
+          padding: "52px 44px",
+          width: "400px",
+          maxWidth: "100%",
+          backdropFilter: "blur(20px)",
+        }}>
+          {/* Logo */}
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "36px" }}>
+            <img src="/images/LOGO.png" alt="InkFlow"
+              style={{ width: "200px", maxWidth: "100%", mixBlendMode: "screen" }} />
           </div>
 
           {/* Heading */}
-          <div style={{ marginBottom: "28px", textAlign: "center" }}>
-            <h1
-              style={{
-                color: "white",
-                fontWeight: "600",
-                fontSize: "22px",
-                letterSpacing: "-0.3px",
-              }}
-            >
+          <div style={{ marginBottom: "32px" }}>
+            <h1 style={{
+              color: "white", fontWeight: "700", fontSize: "24px",
+              letterSpacing: "-0.3px", margin: 0,
+            }}>
               Bem-vindo de volta
             </h1>
-            <p style={{ color: "rgba(255,255,255,0.6)", marginTop: "6px", fontSize: "14px" }}>
-              Entre na sua conta para continuar
+            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: "14px", marginTop: "6px", lineHeight: 1.5 }}>
+              Entre para continuar na sua conta
             </p>
           </div>
 
           {error && (
-            <div
-              style={{
-                marginBottom: "20px",
-                padding: "12px",
-                borderRadius: "12px",
-                background: "rgba(239,68,68,0.1)",
-                border: "1px solid rgba(239,68,68,0.2)",
-                color: "#f87171",
-                fontSize: "14px",
-              }}
-            >
+            <div style={{
+              marginBottom: "20px", padding: "12px 14px", borderRadius: "12px",
+              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)",
+              color: "#f87171", fontSize: "13px",
+            }}>
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
+
             {/* Email */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-              <label
-                htmlFor="email"
-                style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px", fontWeight: "500" }}
-              >
-                Email
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              <label htmlFor="email" style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "600", letterSpacing: "0.06em" }}>
+                EMAIL
               </label>
               <div style={{ position: "relative" }}>
-                <Mail
-                  style={{
-                    position: "absolute",
-                    left: "13px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    width: "16px",
-                    height: "16px",
-                    color: "rgba(29,184,132,0.7)",
-                  }}
-                />
+                <Mail style={{
+                  position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)",
+                  width: "16px", height: "16px", color: "rgba(29,184,132,0.65)",
+                }} />
                 <input
-                  id="email"
-                  type="email"
-                  autoComplete="email"
-                  autoFocus
+                  id="email" type="email" autoComplete="email" autoFocus
                   placeholder="voce@exemplo.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   onFocus={() => setEmailFocused(true)}
                   onBlur={() => setEmailFocused(false)}
                   required
-                  className="placeholder:text-white/40"
+                  className="placeholder:text-white/30"
                   style={inputStyle(emailFocused)}
                 />
               </div>
             </div>
 
             {/* Senha */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <label
-                  htmlFor="password"
-                  style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px", fontWeight: "500" }}
-                >
-                  Senha
+                <label htmlFor="password" style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "600", letterSpacing: "0.06em" }}>
+                  SENHA
                 </label>
-                <Link
-                  to="/forgot-password"
-                  style={{ color: "#1db884", fontSize: "12px", textDecoration: "none", opacity: 0.9 }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.65")}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.9")}
+                <Link to="/forgot-password"
+                  style={{ color: "#1db884", fontSize: "12px", textDecoration: "none", opacity: 0.85, letterSpacing: "0.02em" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.6")}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = "0.85")}
                 >
                   Esqueceu a senha?
                 </Link>
               </div>
               <div style={{ position: "relative" }}>
-                <Lock
-                  style={{
-                    position: "absolute",
-                    left: "13px",
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    width: "16px",
-                    height: "16px",
-                    color: "rgba(29,184,132,0.7)",
-                  }}
-                />
+                <Lock style={{
+                  position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)",
+                  width: "16px", height: "16px", color: "rgba(29,184,132,0.65)",
+                }} />
                 <input
-                  id="password"
-                  type="password"
-                  autoComplete="current-password"
+                  id="password" type="password" autoComplete="current-password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   onFocus={() => setPasswordFocused(true)}
                   onBlur={() => setPasswordFocused(false)}
                   required
-                  className="placeholder:text-white/40"
+                  className="placeholder:text-white/30"
                   style={inputStyle(passwordFocused)}
                 />
               </div>
@@ -324,28 +239,16 @@ export default function Login() {
               type="submit"
               disabled={loading}
               style={{
-                width: "100%",
-                height: "46px",
-                background: loading ? "rgba(29,184,132,0.65)" : "#1db884",
-                color: "#000",
-                fontWeight: "600",
-                fontSize: "15px",
-                borderRadius: "12px",
-                border: "none",
+                width: "100%", height: "50px",
+                background: loading ? "rgba(26,92,58,0.6)" : "#1a5c3a",
+                color: "white", fontWeight: "600", fontSize: "14px",
+                letterSpacing: "0.06em", borderRadius: "12px", border: "none",
                 cursor: loading ? "not-allowed" : "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-                marginTop: "4px",
-                transition: "background 0.15s",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+                marginTop: "4px", transition: "background 0.15s",
               }}
-              onMouseEnter={(e) => {
-                if (!loading) e.currentTarget.style.background = "#17a372";
-              }}
-              onMouseLeave={(e) => {
-                if (!loading) e.currentTarget.style.background = "#1db884";
-              }}
+              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.background = "#154d30"; }}
+              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.background = "#1a5c3a"; }}
             >
               {loading ? (
                 <>
@@ -353,20 +256,16 @@ export default function Login() {
                   Entrando...
                 </>
               ) : (
-                "Entrar"
+                <>
+                  ENTRAR
+                  <ArrowRight style={{ width: "16px", height: "16px" }} />
+                </>
               )}
             </button>
           </form>
 
           {/* Footer */}
-          <p
-            style={{
-              textAlign: "center",
-              fontSize: "12px",
-              color: "rgba(255,255,255,0.4)",
-              marginTop: "24px",
-            }}
-          >
+          <p style={{ textAlign: "center", fontSize: "12px", color: "rgba(255,255,255,0.35)", marginTop: "28px", letterSpacing: "0.03em" }}>
             Registro desabilitado
           </p>
         </div>
