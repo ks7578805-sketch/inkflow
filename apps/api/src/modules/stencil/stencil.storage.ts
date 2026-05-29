@@ -20,7 +20,7 @@ export class StencilStorage {
     this.assertConfigured();
     const safeRelativePath = relativePath.replace(/^\/+/, '');
     await put(safeRelativePath, buffer, {
-      access: 'public',
+      access: 'private',
       addRandomSuffix: false,
       token: this.blobToken,
       contentType: options?.contentType,
