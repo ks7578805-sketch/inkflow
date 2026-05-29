@@ -82,16 +82,16 @@ export default function Login() {
               border: "1px solid rgba(255,255,255,0.08)",
               boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
             }}>
-              <img src="/images/studio-bg-horizontal.png" alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "0% 50%" }} />
+              <img src="/images/tattoo-1.png" alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
             <div style={{
               flex: 1, height: "180px", borderRadius: "16px", overflow: "hidden",
               border: "1px solid rgba(255,255,255,0.08)",
               boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
             }}>
-              <img src="/images/studio-bg-horizontal.png" alt=""
-                style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "50% 50%" }} />
+              <img src="/images/tattoo-2.png" alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             </div>
           </div>
 
@@ -101,8 +101,8 @@ export default function Login() {
             border: "1px solid rgba(255,255,255,0.08)",
             boxShadow: "0 4px 24px rgba(0,0,0,0.4)",
           }}>
-            <img src="/images/studio-bg-horizontal.png" alt=""
-              style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "100% 50%" }} />
+            <img src="/images/tattoo-3.png" alt=""
+              style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
         </div>
 
@@ -147,9 +147,19 @@ export default function Login() {
           backdropFilter: "blur(20px)",
         }}>
           {/* Logo */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: "36px" }}>
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
             <img src="/images/LOGO.png" alt="InkFlow"
               style={{ width: "200px", maxWidth: "100%", mixBlendMode: "screen" }} />
+          </div>
+
+          {/* Brand tagline below logo */}
+          <div style={{ textAlign: "center", marginBottom: "28px" }}>
+            <p style={{ color: "white", fontSize: "13px", fontWeight: "700", letterSpacing: "0.2em", margin: 0 }}>
+              TATTOO FLOW
+            </p>
+            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: "11px", letterSpacing: "0.15em", marginTop: "6px" }}>
+              CRIE. CONECTE. ELEVE.
+            </p>
           </div>
 
           {/* Heading */}
@@ -179,7 +189,7 @@ export default function Login() {
 
             {/* Email */}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              <label htmlFor="email" style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "600", letterSpacing: "0.06em" }}>
+              <label htmlFor="email" style={{ color: "#1db884", fontSize: "11px", fontWeight: "700", letterSpacing: "0.12em" }}>
                 EMAIL
               </label>
               <div style={{ position: "relative" }}>
@@ -204,7 +214,7 @@ export default function Login() {
             {/* Senha */}
             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <label htmlFor="password" style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", fontWeight: "600", letterSpacing: "0.06em" }}>
+                <label htmlFor="password" style={{ color: "#1db884", fontSize: "11px", fontWeight: "700", letterSpacing: "0.12em" }}>
                   SENHA
                 </label>
                 <Link to="/forgot-password"
