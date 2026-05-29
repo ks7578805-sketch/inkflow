@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { STATUS_COLORS } from "@/lib/projects";
+import { PROJECT_STATUS_COLORS } from "@/lib/tokens";
 import {
   ArrowLeft, User, MapPin, Palette, Clock, DollarSign,
   CalendarDays, Image, Heart, StickyNote, Zap,
@@ -47,7 +47,7 @@ export default function ProjectDetail({ project, onBack, onEdit }) {
                   <span className="flex items-center gap-1.5 text-sm text-muted-foreground"><User className="w-3.5 h-3.5" />{project.client}</span>
                   <span className="flex items-center gap-1.5 text-sm text-muted-foreground"><Palette className="w-3.5 h-3.5" />{project.style}</span>
                   <span className="flex items-center gap-1.5 text-sm text-muted-foreground"><MapPin className="w-3.5 h-3.5" />{project.bodyPart}</span>
-                  <span className={cn("text-[11px] font-semibold px-2.5 py-0.5 rounded-full border", STATUS_COLORS[project.status])}>
+                  <span className={cn("text-[11px] font-semibold px-2.5 py-0.5 rounded-full border", PROJECT_STATUS_COLORS[project.status])}>
                     {project.status}
                   </span>
                 </div>

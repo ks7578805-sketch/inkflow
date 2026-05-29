@@ -1,17 +1,7 @@
 import { cn } from "@/lib/utils";
 import { Progress } from "@/components/ui/progress";
 import { Clock, Layers, User, MapPin, Zap } from "lucide-react";
-import { STATUS_COLORS } from "@/lib/projects";
-
-const BADGE_COLORS = {
-  "Healing em andamento": "bg-teal-500/10 text-teal-400",
-  "Aguardando aprovação": "bg-amber-500/10 text-amber-400",
-  "Falta foto antes": "bg-rose-500/10 text-rose-400",
-  "Materiais pendentes": "bg-orange-500/10 text-orange-400",
-  "Retoque sugerido": "bg-violet-500/10 text-violet-400",
-  "Falta stencil": "bg-blue-500/10 text-blue-400",
-  "Falta foto final": "bg-rose-500/10 text-rose-400",
-};
+import { PROJECT_STATUS_COLORS, PROJECT_BADGE_COLORS } from "@/lib/tokens";
 
 export default function ProjectCard({ project, selected, onClick }) {
   return (
@@ -35,7 +25,7 @@ export default function ProjectCard({ project, selected, onClick }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm font-semibold text-foreground leading-tight truncate">{project.name}</p>
-            <span className={cn("shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border", STATUS_COLORS[project.status] || "bg-muted text-muted-foreground border-border")}>
+            <span className={cn("shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full border", PROJECT_STATUS_COLORS[project.status] || "bg-muted text-muted-foreground border-border")}>
               {project.status}
             </span>
           </div>
@@ -69,7 +59,7 @@ export default function ProjectCard({ project, selected, onClick }) {
       {project.badges.length > 0 && (
         <div className="flex flex-wrap gap-1">
           {project.badges.slice(0, 2).map((badge) => (
-            <span key={badge} className={cn("text-[10px] px-1.5 py-0.5 rounded font-medium", BADGE_COLORS[badge] || "bg-muted text-muted-foreground")}>
+            <span key={badge} className={cn("text-[10px] px-1.5 py-0.5 rounded font-medium", PROJECT_BADGE_COLORS[badge] || "bg-muted text-muted-foreground")}>
               {badge}
             </span>
           ))}

@@ -18,14 +18,6 @@ const CALENDAR_SESSION_STATUS_OPTIONS = [
   "Reagendada",
 ];
 
-const STATUS_COLORS = {
-  "Em andamento": "bg-blue-500/15 text-blue-400 border-blue-500/20",
-  "Aguardando aprovação": "bg-amber-500/15 text-amber-400 border-amber-500/20",
-  Finalizado: "bg-primary/15 text-primary border-primary/20",
-  Pausado: "bg-muted text-muted-foreground border-border",
-  Pendente: "bg-violet-500/15 text-violet-400 border-violet-500/20",
-  Arquivado: "bg-muted text-muted-foreground border-border",
-};
 
 async function parseResponse(response) {
   let data = null;
@@ -256,4 +248,4 @@ export function normalizeProject(project) {
   };
 }
 
-export { CALENDAR_SESSION_STATUS_OPTIONS, PROJECT_STATUS_OPTIONS, STATUS_COLORS };
+export { CALENDAR_SESSION_STATUS_OPTIONS, PROJECT_STATUS_OPTIONS };

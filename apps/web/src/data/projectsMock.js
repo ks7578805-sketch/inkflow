@@ -205,19 +205,3 @@ export const MOCK_NOTES = {
 };
 
 export const STATUS_OPTIONS = ["Todos", "Em andamento", "Aguardando aprovação", "Pendente", "Finalizado", "Pausado", "Arquivado"];
-export const STATUS_MAP = {
-  "Em andamento": "info",
-  "Aguardando aprovação": "warning",
-  "Finalizado": "success",
-  "Pausado": "neutral",
-  "Pendente": "pending",
-  "Arquivado": "neutral",
-};
-export const STATUS_COLORS = {
-  "Em andamento": "bg-blue-500/15 text-blue-400 border-blue-500/20",
-  "Aguardando aprovação": "bg-amber-500/15 text-amber-400 border-amber-500/20",
-  "Finalizado": "bg-primary/15 text-primary border-primary/20",
-  "Pausado": "bg-muted text-muted-foreground border-border",
-  "Pendente": "bg-violet-500/15 text-violet-400 border-violet-500/20",
-  "Arquivado": "bg-muted text-muted-foreground border-border",
-};
