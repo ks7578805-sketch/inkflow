@@ -52,11 +52,11 @@ export default function FlashGallery() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Buscar por nome, estilo, tag..."
-              className="pl-9 h-9 bg-secondary/50 border-border/50 text-sm"
+              className="pl-9 h-9 bg-white/[0.04] border-white/[0.08] text-sm"
             />
           </div>
           <Select value={artistFilter} onValueChange={setArtistFilter}>
-            <SelectTrigger className="h-9 w-36 text-xs bg-secondary/50 border-border/50">
+            <SelectTrigger className="h-9 w-36 text-xs bg-white/[0.04] border-white/[0.08]">
               <SelectValue placeholder="Artista" />
             </SelectTrigger>
             <SelectContent>
@@ -82,7 +82,7 @@ export default function FlashGallery() {
                   "flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap border transition-all",
                   filter === f.id
                     ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-muted/20 text-muted-foreground border-border/50 hover:bg-muted/30 hover:text-foreground"
+                    : "bg-white/[0.03] text-white/45 border-white/[0.07] hover:bg-white/[0.06] hover:text-white/80"
                 )}
               >
                 {f.label}
@@ -98,7 +98,7 @@ export default function FlashGallery() {
 
         {/* Grid */}
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-64 bg-card border border-border/50 rounded-xl text-center">
+          <div className="flex flex-col items-center justify-center h-64 glass-card rounded-2xl text-center">
             <div className="w-12 h-12 rounded-2xl bg-muted/30 flex items-center justify-center mb-3">
               <Images className="w-5 h-5 text-muted-foreground/40" />
             </div>
@@ -115,7 +115,7 @@ export default function FlashGallery() {
               <div
                 key={item.id}
                 onClick={() => setSelected(item)}
-                className="bg-card border border-border/50 rounded-2xl overflow-hidden cursor-pointer group hover:border-primary/25 hover:shadow-lg hover:shadow-primary/5 transition-all duration-200"
+                className="glass-card rounded-2xl overflow-hidden cursor-pointer group hover:border-primary/25 hover:shadow-lg hover:shadow-primary/[0.08] transition-all duration-200"
               >
                 {/* Image */}
                 <div className={cn("relative bg-gradient-to-br", item.colors)} style={{ paddingBottom: "75%" }}>

@@ -20,17 +20,11 @@ import ResetPassword from '@/pages/ResetPassword';
 // App pages
 import Dashboard from '@/pages/Dashboard';
 import StencilAI from '@/pages/StencilAI';
-import PlacementPreview from '@/pages/PlacementPreview';
 import Projects from '@/pages/Projects';
 import Calendar from '@/pages/Calendar';
 import Clients from '@/pages/Clients';
 import FlashGallery from '@/pages/FlashGallery';
-import Finance from '@/pages/Finance';
-import Inventory from '@/pages/Inventory';
-import Analytics from '@/pages/Analytics';
 import Settings from '@/pages/Settings';
-import Compliance from '@/pages/Compliance';
-import Aftercare from '@/pages/Aftercare';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
@@ -61,16 +55,10 @@ const AuthenticatedApp = () => {
         <Route element={<AppLayout />}>
           <Route path="/" element={<Dashboard />} />
           <Route path="/stencil" element={<StencilAI />} />
-          <Route path="/placement" element={<PlacementPreview />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/clients" element={<Clients />} />
           <Route path="/flash-gallery" element={<FlashGallery />} />
-          <Route path="/finance" element={<Finance />} />
-          <Route path="/inventory" element={<Inventory />} />
-          <Route path="/compliance" element={<Compliance />} />
-          <Route path="/aftercare" element={<Aftercare />} />
-          <Route path="/analytics" element={<Analytics />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

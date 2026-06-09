@@ -8,17 +8,17 @@ export default function ProjectCard({ project, selected, onClick }) {
     <div
       onClick={onClick}
       className={cn(
-        "group relative bg-card border rounded-xl p-4 cursor-pointer transition-all duration-200",
+        "group relative glass-card rounded-2xl p-4 cursor-pointer transition-all duration-200",
         selected
-          ? "border-primary/40 bg-primary/5 shadow-[0_0_0_1px_hsl(var(--primary)/0.2)]"
-          : "border-border/50 hover:border-border hover:bg-card/80",
+          ? "border-primary/30 bg-primary/[0.06] shadow-[0_0_0_1px_rgba(16,185,129,0.12)]"
+          : "hover:border-white/[0.12] hover:bg-white/[0.06]",
       )}
     >
       <div className="flex items-start gap-3 mb-3">
         {project.thumbnail ? (
           <img src={project.thumbnail} alt="" className="w-12 h-12 rounded-lg object-cover flex-shrink-0 opacity-80 group-hover:opacity-100 transition-opacity" />
         ) : (
-          <div className="w-12 h-12 rounded-lg bg-muted/40 flex items-center justify-center flex-shrink-0">
+          <div className="w-12 h-12 rounded-lg bg-white/[0.04] border border-white/[0.07] flex items-center justify-center flex-shrink-0">
             <Zap className="w-5 h-5 text-muted-foreground/40" />
           </div>
         )}

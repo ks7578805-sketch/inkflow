@@ -1,68 +1,89 @@
+import { Wand2 } from "lucide-react";
+
 export default function AuthLayout({ children }) {
   return (
-    <div className="min-h-screen flex bg-[hsl(220_15%_5%)]">
-      {/* LADO ESQUERDO */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden">
-        <img
-          src="/images/studio-bg-vertical.png"
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover object-center"
+    <div className="min-h-screen flex bg-[#080a0d]">
+
+      {/* LADO ESQUERDO — brand panel */}
+      <div className="hidden lg:flex flex-1 relative overflow-hidden flex-col justify-between p-14"
+        style={{ background: 'linear-gradient(135deg, #0a1610 0%, #080d0a 50%, #080a0d 100%)' }}>
+
+        {/* Linha verde topo */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
+
+        {/* Grade decorativa sutil */}
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(hsl(160,84%,39%) 1px, transparent 1px), linear-gradient(90deg, hsl(160,84%,39%) 1px, transparent 1px)',
+            backgroundSize: '60px 60px'
+          }}
         />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute bottom-12 left-10">
-          <p className="text-xs tracking-[0.3em] text-white/50 uppercase mb-2">Bem-vindo ao</p>
-          <h1 className="text-5xl font-black text-white tracking-widest uppercase">TATTOO FLOW</h1>
-          <div className="w-12 h-px bg-[hsl(160_84%_39%)] my-3" />
-          <p className="text-sm text-white/60 leading-relaxed max-w-xs">
-            A plataforma profissional para tatuadores<br />
-            e estúdios que querem criar, conectar<br />
-            e elevar a arte da tatuagem.
+
+        {/* Gradiente radial verde no canto */}
+        <div className="absolute top-0 left-0 w-[500px] h-[500px] opacity-[0.07]"
+          style={{ background: 'radial-gradient(circle, hsl(160,84%,39%) 0%, transparent 70%)' }}
+        />
+
+        {/* Logo */}
+        <div className="relative flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+            <Wand2 className="w-4.5 h-4.5 text-[#080a0d]" />
+          </div>
+          <div>
+            <p className="font-bold text-[15px] text-white">InkFlow</p>
+            <p className="text-[9px] text-primary/50 font-mono uppercase tracking-[0.2em]">Studio Manager</p>
+          </div>
+        </div>
+
+        {/* Headline central */}
+        <div className="relative">
+          <p className="text-[10px] font-mono text-primary/50 uppercase tracking-[0.25em] mb-4">
+            Para tatuadores profissionais
           </p>
-          <button className="mt-4 text-xs tracking-widest text-[hsl(160_84%_39%)] uppercase flex items-center gap-2 hover:gap-3 transition-all">
-            SAIBA MAIS <span>→</span>
-          </button>
+          <h1 className="text-5xl font-black text-white leading-[1.1] mb-6">
+            Gerencie<br />
+            seu estúdio<br />
+            <span className="text-primary">com precisão.</span>
+          </h1>
+          <div className="w-10 h-px bg-primary/40 mb-5" />
+          <p className="text-white/35 text-sm leading-relaxed max-w-xs">
+            Agenda, clientes, projetos, stencil com IA e galeria — tudo em um só lugar, feito para quem tatua.
+          </p>
+        </div>
+
+        {/* Métricas decorativas */}
+        <div className="relative flex items-center gap-8">
+          {[
+            { value: "2.4k+", label: "Tatuadores" },
+            { value: "98%", label: "Satisfação" },
+            { value: "50k+", label: "Sessões" },
+          ].map((stat) => (
+            <div key={stat.label}>
+              <p className="text-xl font-bold text-white">{stat.value}</p>
+              <p className="text-[10px] text-white/30 uppercase tracking-wider">{stat.label}</p>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* LADO DIREITO */}
-      <div className="w-full lg:w-[500px] flex items-center justify-center px-10 py-12"
-        style={{ background: 'linear-gradient(160deg, #0a1a12 0%, #060d09 100%)' }}>
+      {/* LADO DIREITO — form */}
+      <div className="w-full lg:w-[480px] flex items-center justify-center px-8 py-12 bg-[#080a0d]">
+        {/* Linha verde topo (mobile) */}
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent lg:hidden" />
+
         <div className="w-full max-w-sm">
-
-          {/* Logo área */}
-          <div className="flex flex-col items-center mb-8">
-            <div className="relative mb-4" style={{ filter: 'drop-shadow(0 0 18px rgba(74,222,128,0.25)) drop-shadow(0 0 40px rgba(74,222,128,0.1))' }}>
-              <img
-                src="/images/LOGO.png"
-                alt="Tattoo Flow"
-                className="h-36 w-auto"
-                style={{ mixBlendMode: 'screen', filter: 'brightness(1.3) contrast(1.1)' }}
-              />
+          {/* Logo mobile */}
+          <div className="flex items-center gap-3 mb-10 lg:hidden">
+            <div className="w-8 h-8 rounded-xl bg-primary flex items-center justify-center">
+              <Wand2 className="w-4 h-4 text-[#080a0d]" />
             </div>
-            <h2
-              className="text-2xl font-bold text-white uppercase"
-              style={{ letterSpacing: '0.4em', textShadow: '0 0 20px rgba(74,222,128,0.2)' }}
-            >
-              TATTOO FLOW
-            </h2>
-            <div className="flex items-center gap-2 mt-2">
-              <div className="w-8 h-px bg-[hsl(160_84%_39%)]" />
-              <span className="text-[10px] tracking-[0.3em] text-white/40 uppercase">Crie. Conecte. Eleve.</span>
-              <div className="w-8 h-px bg-[hsl(160_84%_39%)]" />
+            <div>
+              <p className="font-bold text-[14px] text-white">InkFlow</p>
+              <p className="text-[9px] text-primary/50 font-mono uppercase tracking-[0.18em]">Studio Manager</p>
             </div>
           </div>
 
-          {/* Card */}
-          <div
-            className="rounded-2xl p-8"
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '1px solid rgba(74,222,128,0.12)',
-              boxShadow: '0 0 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)'
-            }}
-          >
-            {children}
-          </div>
+          {children}
         </div>
       </div>
     </div>

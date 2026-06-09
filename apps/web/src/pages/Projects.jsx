@@ -270,7 +270,7 @@ export default function Projects() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar por cliente, estilo, área..."
-              className="pl-9 h-9 bg-secondary/50 border-border/50 text-sm"
+              className="pl-9 h-9 bg-white/[0.04] border-white/[0.08] text-sm"
             />
             {search && (
               <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -324,7 +324,7 @@ export default function Projects() {
                 "shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-medium transition-all border",
                 filter === tab.id
                   ? "bg-primary/15 text-primary border-primary/30"
-                  : "bg-muted/30 text-muted-foreground border-border/50 hover:bg-muted/50 hover:text-foreground",
+                  : "bg-white/[0.03] text-white/45 border-white/[0.07] hover:bg-white/[0.06] hover:text-white/80",
               )}
             >
               {tab.label}

@@ -42,7 +42,7 @@ export default function CalendarHeader({ date, view, artist, artistOptions, onDa
         <div className="flex items-center gap-1.5">
           <Button
             variant="outline" size="icon"
-            className="h-8 w-8 border-border/50 hover:bg-muted/50"
+            className="h-8 w-8 border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-white/60 hover:text-white"
             onClick={() => onDateChange(navigate(date, view, -1))}
           >
             <ChevronLeft className="w-4 h-4" />
@@ -55,7 +55,7 @@ export default function CalendarHeader({ date, view, artist, artistOptions, onDa
 
           <Button
             variant="outline" size="icon"
-            className="h-8 w-8 border-border/50 hover:bg-muted/50"
+            className="h-8 w-8 border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-white/60 hover:text-white"
             onClick={() => onDateChange(navigate(date, view, 1))}
           >
             <ChevronRight className="w-4 h-4" />
@@ -76,7 +76,7 @@ export default function CalendarHeader({ date, view, artist, artistOptions, onDa
         <div className="flex items-center gap-2 flex-wrap">
           {/* Artist filter */}
           <Select value={artist} onValueChange={onArtistChange}>
-            <SelectTrigger className="h-8 w-36 text-xs bg-secondary/50 border-border/50">
+            <SelectTrigger className="h-8 w-36 text-xs bg-white/[0.04] border-white/[0.08]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -87,7 +87,7 @@ export default function CalendarHeader({ date, view, artist, artistOptions, onDa
           </Select>
 
           {/* View switcher */}
-          <div className="flex items-center bg-muted/30 border border-border/50 rounded-lg p-0.5 gap-0.5">
+          <div className="flex items-center bg-white/[0.03] border border-white/[0.07] rounded-lg p-0.5 gap-0.5">
             {VIEWS.map((v) => (
               <button
                 key={v.id}

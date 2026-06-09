@@ -156,7 +156,7 @@ export default function Clients() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar por nome, email ou telefone..."
-              className="pl-9 h-9 bg-secondary/50 border-border/50 text-sm"
+              className="pl-9 h-9 bg-white/[0.04] border-white/[0.08] text-sm"
             />
           </div>
           <div className="flex items-center gap-1 border border-border/50 rounded-lg p-0.5 bg-muted/20">
@@ -219,8 +219,8 @@ export default function Clients() {
 
         <div className={cn("flex gap-4 min-h-0", view === "pipeline" ? "hidden" : "flex-1")} style={{ height: "calc(100vh - 250px)" }}>
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <div className="hidden md:flex flex-col flex-1 bg-card border border-border/50 rounded-xl overflow-hidden">
-              <div className="grid grid-cols-[2fr_1.5fr_140px] gap-0 border-b border-border/30 bg-muted/20 px-4 py-2.5">
+            <div className="hidden md:flex flex-col flex-1 glass-card rounded-2xl overflow-hidden">
+              <div className="grid grid-cols-[2fr_1.5fr_140px] gap-0 border-b border-white/[0.06] bg-white/[0.02] px-4 py-2.5">
                 {["Cliente", "Contato", "Atualizado"].map((header) => (
                   <div key={header} className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{header}</div>
                 ))}
@@ -261,7 +261,7 @@ export default function Clients() {
                       onClick={() => setSelectedId(client.id)}
                       className={cn(
                         "grid grid-cols-[2fr_1.5fr_140px] gap-0 items-center px-4 py-3 border-b border-border/15 last:border-0 cursor-pointer transition-all",
-                        selectedId === client.id ? "bg-primary/8 border-l-2 border-l-primary" : "hover:bg-muted/20"
+                        selectedId === client.id ? "bg-primary/[0.08] border-l-2 border-l-primary" : "hover:bg-white/[0.03]"
                       )}
                     >
                       <div className="flex items-center gap-3 min-w-0">
