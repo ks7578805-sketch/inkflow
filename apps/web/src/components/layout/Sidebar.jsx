@@ -1,16 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Wand2, FolderKanban, CalendarDays,
+  LayoutDashboard, Wand2, CalendarDays,
   Users, Image, Settings, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Painel", path: "/" },
+  { icon: Wand2, label: "Stencil IA", path: "/stencil" },
   { icon: CalendarDays, label: "Agenda", path: "/calendar" },
   { icon: Users, label: "Clientes", path: "/clients" },
-  { icon: FolderKanban, label: "Projetos", path: "/projects" },
-  { icon: Wand2, label: "Stencil IA", path: "/stencil" },
   { icon: Image, label: "Galeria", path: "/flash-gallery" },
 ];
 

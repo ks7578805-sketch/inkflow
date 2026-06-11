@@ -1,109 +1,126 @@
 import { addDays, format } from "date-fns";
 
-export const ARTISTS = [
-  { id: "all", name: "Todos os artistas" },
-  { id: "rafael", name: "Rafael Ink" },
-  { id: "marta", name: "Marta Velez" },
-  { id: "camila", name: "Camila Torres" },
-  { id: "joao", name: "João Lucas" },
-];
+const d = (offset) => format(addDays(new Date(), offset), "yyyy-MM-dd");
 
-export const SESSION_STATUS = {
-  "Confirmada": { color: "bg-primary/15 text-primary border-primary/25", bar: "bg-primary", dot: "bg-primary" },
-  "Em andamento": { color: "bg-blue-500/15 text-blue-400 border-blue-500/25", bar: "bg-blue-500", dot: "bg-blue-500" },
-  "Aguardando depósito": { color: "bg-amber-500/15 text-amber-400 border-amber-500/25", bar: "bg-amber-500", dot: "bg-amber-500" },
-  "Concluída": { color: "bg-muted/60 text-muted-foreground border-border", bar: "bg-muted-foreground/40", dot: "bg-muted-foreground/60" },
-  "Cancelada": { color: "bg-destructive/15 text-destructive border-destructive/25", bar: "bg-destructive", dot: "bg-destructive" },
-  "Reagendada": { color: "bg-violet-500/15 text-violet-400 border-violet-500/25", bar: "bg-violet-500", dot: "bg-violet-500" },
-  "Intervalo": { color: "bg-muted/40 text-muted-foreground border-border/40", bar: "bg-muted-foreground/20", dot: "bg-muted-foreground/30" },
+// Status color map — structured for future per-client WhatsApp label overrides.
+// corEtiqueta (optional hex) overrides the status color when present.
+export const STATUS_COLORS = {
+  confirmado: {
+    dot: "#1db884",
+    chipBg: "rgba(29,184,132,0.09)",
+    chipBorder: "rgba(29,184,132,0.18)",
+    chipText: "#1db884",
+    bar: "#1db884",
+    label: "Confirmado",
+  },
+  pendente: {
+    dot: "#f59e0b",
+    chipBg: "rgba(245,158,11,0.09)",
+    chipBorder: "rgba(245,158,11,0.18)",
+    chipText: "#f59e0b",
+    bar: "#f59e0b",
+    label: "Pendente",
+  },
+  cancelado: {
+    dot: "rgba(255,255,255,0.22)",
+    chipBg: "rgba(255,255,255,0.03)",
+    chipBorder: "rgba(255,255,255,0.07)",
+    chipText: "rgba(255,255,255,0.28)",
+    bar: "rgba(255,255,255,0.14)",
+    label: "Cancelado",
+  },
 };
 
-// Generate sessions around today
-const today = new Date();
-const todayStr = format(today, "yyyy-MM-dd");
-const tomorrowStr = format(addDays(today, 1), "yyyy-MM-dd");
-const yestStr = format(addDays(today, -1), "yyyy-MM-dd");
-const d2 = format(addDays(today, 2), "yyyy-MM-dd");
-const d3 = format(addDays(today, 3), "yyyy-MM-dd");
-const d5 = format(addDays(today, 5), "yyyy-MM-dd");
-const d6 = format(addDays(today, 6), "yyyy-MM-dd");
+// Returns color config for a session. When corEtiqueta is set (future WhatsApp sync),
+// it will build a custom color from that hex; falls back to status color.
+export function getSessionColor(session) {
+  // Future: if (session.corEtiqueta) return buildColorFromHex(session.corEtiqueta);
+  return STATUS_COLORS[session.status] ?? STATUS_COLORS.confirmado;
+}
 
+// Session data — all dates dynamic relative to new Date().
+// Fields match the future API contract: id, clienteNome, estilo, horarioInicio,
+// horarioFim, status, corEtiqueta, depositoPago, depositoTotal, artistaNome.
 export const MOCK_SESSIONS = [
-  {
-    id: "s1", date: todayStr, time: "09:00", endTime: "12:00", duration: 3,
-    client: "Lucas Mendes", artist: "rafael", artistName: "Rafael Ink",
-    style: "Japanese", type: "Sleeve Oriental (cont.)", placement: "Braço esquerdo",
-    status: "Confirmada", value: 900, deposit: 300, notes: "Continuar shading das ondas. Cliente prefere sessões longas.",
-    color: "primary",
-  },
-  {
-    id: "s2", date: todayStr, time: "13:00", endTime: "15:00", duration: 2,
-    client: "Ana Beatriz", artist: "marta", artistName: "Marta Velez",
-    style: "Fineline", type: "Fineline Floral", placement: "Antebraço direito",
-    status: "Confirmada", value: 600, deposit: 200, notes: "",
-    color: "blue",
-  },
-  {
-    id: "s3", date: todayStr, time: "15:30", endTime: "16:30", duration: 1,
-    client: "Mariana Lopes", artist: "camila", artistName: "Camila Torres",
-    style: "Lettering", type: "Lettering Minimalista", placement: "Pulso",
-    status: "Aguardando depósito", value: 350, deposit: 0, notes: "Aguardando PIX do sinal.",
-    color: "amber",
-  },
-  {
-    id: "s4", date: todayStr, time: "17:00", endTime: "21:00", duration: 4,
-    client: "Pedro Oliveira", artist: "rafael", artistName: "Rafael Ink",
-    style: "Blackwork", type: "Blackwork Geométrico", placement: "Costas superiores",
-    status: "Em andamento", value: 1400, deposit: 500, notes: "Sessão longa. Separar 4h sem interrupção.",
-    color: "primary",
-  },
-  {
-    id: "s5", date: tomorrowStr, time: "10:00", endTime: "13:00", duration: 3,
-    client: "Juliana Costa", artist: "marta", artistName: "Marta Velez",
-    style: "Realismo", type: "Retrato Realismo", placement: "Coxa",
-    status: "Confirmada", value: 1200, deposit: 400, notes: "",
-    color: "primary",
-  },
-  {
-    id: "s6", date: tomorrowStr, time: "14:00", endTime: "17:00", duration: 3,
-    client: "Ricardo Lima", artist: "joao", artistName: "João Lucas",
-    style: "Neo Tradicional", type: "Neo Trad Águia", placement: "Peitoral",
-    status: "Confirmada", value: 900, deposit: 300, notes: "",
-    color: "primary",
-  },
-  {
-    id: "s7", date: yestStr, time: "09:00", endTime: "12:00", duration: 3,
-    client: "Fernanda Silva", artist: "camila", artistName: "Camila Torres",
-    style: "Aquarela", type: "Aquarela Floral", placement: "Ombro",
-    status: "Concluída", value: 800, deposit: 300, notes: "Sessão concluída com sucesso.",
-    color: "muted",
-  },
-  {
-    id: "s8", date: d2, time: "11:00", endTime: "14:00", duration: 3,
-    client: "Carlos Motta", artist: "rafael", artistName: "Rafael Ink",
-    style: "Old School", type: "Old School Anchor", placement: "Antebraço",
-    status: "Confirmada", value: 700, deposit: 200, notes: "",
-    color: "primary",
-  },
-  {
-    id: "s9", date: d3, time: "09:00", endTime: "11:00", duration: 2,
-    client: "Beatriz Alves", artist: "marta", artistName: "Marta Velez",
-    style: "Fineline", type: "Constelações Fineline", placement: "Costela",
-    status: "Aguardando depósito", value: 500, deposit: 0, notes: "",
-    color: "amber",
-  },
-  {
-    id: "s10", date: d5, time: "13:00", endTime: "16:00", duration: 3,
-    client: "Thiago Rocha", artist: "joao", artistName: "João Lucas",
-    style: "Geométrico", type: "Mandala Geométrica", placement: "Antebraço",
-    status: "Confirmada", value: 850, deposit: 300, notes: "",
-    color: "primary",
-  },
-  {
-    id: "s11", date: d6, time: "10:00", endTime: "14:00", duration: 4,
-    client: "Sofia Carvalho", artist: "rafael", artistName: "Rafael Ink",
-    style: "Japanese", type: "Dragão Japonês", placement: "Perna",
-    status: "Confirmada", value: 1600, deposit: 600, notes: "Início de sleeve de perna.",
-    color: "primary",
-  },
+  // -7 (June 4)
+  { id: "s01", data: d(-7), horarioInicio: "10:00", horarioFim: "13:00", clienteNome: "Rafaela Souza", estilo: "Aquarela", artistaNome: "Camila Torres", status: "confirmado", depositoPago: 350, depositoTotal: 1050, corEtiqueta: null },
+  { id: "s02", data: d(-7), horarioInicio: "14:00", horarioFim: "16:00", clienteNome: "Bruno Teixeira", estilo: "Blackwork", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 250, depositoTotal: 700, corEtiqueta: null },
+
+  // -6 (June 5, sábado)
+  { id: "s03", data: d(-6), horarioInicio: "11:00", horarioFim: "14:00", clienteNome: "Luana Ferreira", estilo: "Fine Line", artistaNome: "Marta Velez", status: "confirmado", depositoPago: 300, depositoTotal: 900, corEtiqueta: null },
+
+  // -4 (June 7, domingo)
+  { id: "s04", data: d(-4), horarioInicio: "09:00", horarioFim: "12:00", clienteNome: "Diego Nunes", estilo: "Japonês", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 400, depositoTotal: 1200, corEtiqueta: null },
+
+  // -3 (June 8)
+  { id: "s05", data: d(-3), horarioInicio: "09:00", horarioFim: "11:00", clienteNome: "Clara Monteiro", estilo: "Geométrico", artistaNome: "João Lucas", status: "confirmado", depositoPago: 200, depositoTotal: 600, corEtiqueta: null },
+  { id: "s06", data: d(-3), horarioInicio: "13:00", horarioFim: "16:00", clienteNome: "Felipe Azevedo", estilo: "Realismo", artistaNome: "Marta Velez", status: "cancelado", depositoPago: 0, depositoTotal: 1100, corEtiqueta: null },
+  { id: "s07", data: d(-3), horarioInicio: "17:00", horarioFim: "20:00", clienteNome: "Amanda Reis", estilo: "Old School", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 300, depositoTotal: 850, corEtiqueta: null },
+
+  // -2 (June 9)
+  { id: "s08", data: d(-2), horarioInicio: "10:00", horarioFim: "12:00", clienteNome: "Gustavo Pinto", estilo: "Blackwork", artistaNome: "João Lucas", status: "confirmado", depositoPago: 200, depositoTotal: 550, corEtiqueta: null },
+  { id: "s09", data: d(-2), horarioInicio: "15:00", horarioFim: "18:00", clienteNome: "Isabela Rocha", estilo: "Aquarela", artistaNome: "Camila Torres", status: "pendente", depositoPago: 0, depositoTotal: 950, corEtiqueta: null },
+
+  // -1 (June 10)
+  { id: "s10", data: d(-1), horarioInicio: "09:00", horarioFim: "12:00", clienteNome: "Mateus Lima", estilo: "Japonês", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 500, depositoTotal: 1500, corEtiqueta: null },
+  { id: "s11", data: d(-1), horarioInicio: "14:00", horarioFim: "17:00", clienteNome: "Natalia Costa", estilo: "Fine Line", artistaNome: "Marta Velez", status: "confirmado", depositoPago: 300, depositoTotal: 800, corEtiqueta: null },
+
+  // 0 (June 11 — hoje, 4 sessões)
+  { id: "s12", data: d(0), horarioInicio: "09:00", horarioFim: "12:00", clienteNome: "Lucas Mendes", estilo: "Japonês", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 400, depositoTotal: 1200, corEtiqueta: null },
+  { id: "s13", data: d(0), horarioInicio: "13:00", horarioFim: "15:00", clienteNome: "Ana Beatriz", estilo: "Fine Line", artistaNome: "Marta Velez", status: "confirmado", depositoPago: 200, depositoTotal: 600, corEtiqueta: null },
+  { id: "s14", data: d(0), horarioInicio: "15:30", horarioFim: "16:30", clienteNome: "Mariana Lopes", estilo: "Lettering", artistaNome: "Camila Torres", status: "pendente", depositoPago: 0, depositoTotal: 350, corEtiqueta: null },
+  { id: "s15", data: d(0), horarioInicio: "17:00", horarioFim: "21:00", clienteNome: "Pedro Oliveira", estilo: "Blackwork", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 500, depositoTotal: 1400, corEtiqueta: null },
+
+  // +1 (June 12)
+  { id: "s16", data: d(1), horarioInicio: "10:00", horarioFim: "13:00", clienteNome: "Juliana Costa", estilo: "Realismo", artistaNome: "Marta Velez", status: "confirmado", depositoPago: 400, depositoTotal: 1200, corEtiqueta: null },
+  { id: "s17", data: d(1), horarioInicio: "14:00", horarioFim: "17:00", clienteNome: "Ricardo Lima", estilo: "Old School", artistaNome: "João Lucas", status: "confirmado", depositoPago: 300, depositoTotal: 900, corEtiqueta: null },
+
+  // +3 (June 14, sábado)
+  { id: "s18", data: d(3), horarioInicio: "11:00", horarioFim: "14:00", clienteNome: "Thais Cardoso", estilo: "Geométrico", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 300, depositoTotal: 850, corEtiqueta: null },
+
+  // +4 (June 15)
+  { id: "s19", data: d(4), horarioInicio: "09:00", horarioFim: "11:00", clienteNome: "Vinicius Santos", estilo: "Blackwork", artistaNome: "João Lucas", status: "pendente", depositoPago: 0, depositoTotal: 550, corEtiqueta: null },
+  { id: "s20", data: d(4), horarioInicio: "12:00", horarioFim: "15:00", clienteNome: "Camila Gomes", estilo: "Aquarela", artistaNome: "Camila Torres", status: "confirmado", depositoPago: 350, depositoTotal: 1000, corEtiqueta: null },
+  { id: "s21", data: d(4), horarioInicio: "16:00", horarioFim: "19:00", clienteNome: "Eduardo Martins", estilo: "Japonês", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 400, depositoTotal: 1100, corEtiqueta: null },
+
+  // +5 (June 16)
+  { id: "s22", data: d(5), horarioInicio: "10:00", horarioFim: "13:00", clienteNome: "Patricia Alves", estilo: "Realismo", artistaNome: "Marta Velez", status: "confirmado", depositoPago: 500, depositoTotal: 1400, corEtiqueta: null },
+  { id: "s23", data: d(5), horarioInicio: "15:00", horarioFim: "18:00", clienteNome: "Rodrigo Cunha", estilo: "Old School", artistaNome: "Rafael Ink", status: "cancelado", depositoPago: 0, depositoTotal: 750, corEtiqueta: null },
+
+  // +6 (June 17)
+  { id: "s24", data: d(6), horarioInicio: "09:00", horarioFim: "12:00", clienteNome: "Fernanda Dias", estilo: "Fine Line", artistaNome: "Camila Torres", status: "confirmado", depositoPago: 250, depositoTotal: 700, corEtiqueta: null },
+  { id: "s25", data: d(6), horarioInicio: "14:00", horarioFim: "16:00", clienteNome: "Leonardo Moraes", estilo: "Geométrico", artistaNome: "João Lucas", status: "pendente", depositoPago: 0, depositoTotal: 600, corEtiqueta: null },
+
+  // +7 (June 18)
+  { id: "s26", data: d(7), horarioInicio: "10:00", horarioFim: "13:00", clienteNome: "Tatiana Ribeiro", estilo: "Blackwork", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 300, depositoTotal: 900, corEtiqueta: null },
+  { id: "s27", data: d(7), horarioInicio: "13:30", horarioFim: "15:30", clienteNome: "Henrique Carvalho", estilo: "Old School", artistaNome: "Marta Velez", status: "confirmado", depositoPago: 200, depositoTotal: 650, corEtiqueta: null },
+  { id: "s28", data: d(7), horarioInicio: "16:00", horarioFim: "18:00", clienteNome: "Samara Pereira", estilo: "Fine Line", artistaNome: "Camila Torres", status: "pendente", depositoPago: 0, depositoTotal: 550, corEtiqueta: null },
+
+  // +8 (June 19)
+  { id: "s29", data: d(8), horarioInicio: "11:00", horarioFim: "14:00", clienteNome: "André Mendonça", estilo: "Japonês", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 400, depositoTotal: 1300, corEtiqueta: null },
+
+  // +11 (June 22)
+  { id: "s30", data: d(11), horarioInicio: "09:00", horarioFim: "11:00", clienteNome: "Bruna Oliveira", estilo: "Lettering", artistaNome: "João Lucas", status: "confirmado", depositoPago: 150, depositoTotal: 400, corEtiqueta: null },
+  { id: "s31", data: d(11), horarioInicio: "12:00", horarioFim: "15:00", clienteNome: "Caio Ferreira", estilo: "Realismo", artistaNome: "Marta Velez", status: "confirmado", depositoPago: 450, depositoTotal: 1350, corEtiqueta: null },
+  { id: "s32", data: d(11), horarioInicio: "16:00", horarioFim: "19:00", clienteNome: "Débora Santos", estilo: "Aquarela", artistaNome: "Rafael Ink", status: "pendente", depositoPago: 0, depositoTotal: 950, corEtiqueta: null },
+
+  // +13 (June 24)
+  { id: "s33", data: d(13), horarioInicio: "10:00", horarioFim: "13:00", clienteNome: "Fábio Ribeiro", estilo: "Blackwork", artistaNome: "João Lucas", status: "confirmado", depositoPago: 300, depositoTotal: 800, corEtiqueta: null },
+  { id: "s34", data: d(13), horarioInicio: "15:00", horarioFim: "18:00", clienteNome: "Giovana Lima", estilo: "Geométrico", artistaNome: "Camila Torres", status: "confirmado", depositoPago: 350, depositoTotal: 950, corEtiqueta: null },
+
+  // +14 (June 25)
+  { id: "s35", data: d(14), horarioInicio: "09:00", horarioFim: "12:00", clienteNome: "Hugo Barbosa", estilo: "Old School", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 300, depositoTotal: 850, corEtiqueta: null },
+  { id: "s36", data: d(14), horarioInicio: "14:00", horarioFim: "16:00", clienteNome: "Ingrid Campos", estilo: "Fine Line", artistaNome: "Marta Velez", status: "pendente", depositoPago: 0, depositoTotal: 650, corEtiqueta: null },
+
+  // +16 (June 27, sábado)
+  { id: "s37", data: d(16), horarioInicio: "11:00", horarioFim: "15:00", clienteNome: "Jonas Nascimento", estilo: "Japonês", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 500, depositoTotal: 1500, corEtiqueta: null },
+
+  // +18 (June 29)
+  { id: "s38", data: d(18), horarioInicio: "09:00", horarioFim: "12:00", clienteNome: "Karina Melo", estilo: "Realismo", artistaNome: "Marta Velez", status: "confirmado", depositoPago: 400, depositoTotal: 1200, corEtiqueta: null },
+  { id: "s39", data: d(18), horarioInicio: "13:00", horarioFim: "15:00", clienteNome: "Luis Fernando", estilo: "Blackwork", artistaNome: "João Lucas", status: "confirmado", depositoPago: 200, depositoTotal: 600, corEtiqueta: null },
+  { id: "s40", data: d(18), horarioInicio: "16:00", horarioFim: "19:00", clienteNome: "Marina Souza", estilo: "Aquarela", artistaNome: "Camila Torres", status: "pendente", depositoPago: 0, depositoTotal: 950, corEtiqueta: null },
+
+  // +19 (June 30)
+  { id: "s41", data: d(19), horarioInicio: "10:00", horarioFim: "13:00", clienteNome: "Nelson Prado", estilo: "Old School", artistaNome: "Rafael Ink", status: "confirmado", depositoPago: 350, depositoTotal: 950, corEtiqueta: null },
+  { id: "s42", data: d(19), horarioInicio: "15:00", horarioFim: "17:00", clienteNome: "Olivia Campos", estilo: "Geométrico", artistaNome: "João Lucas", status: "confirmado", depositoPago: 200, depositoTotal: 550, corEtiqueta: null },
 ];

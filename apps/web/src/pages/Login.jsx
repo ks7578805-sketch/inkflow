@@ -37,14 +37,14 @@ export default function Login() {
   return (
     <AuthLayout>
       {/* Header */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-1 tracking-tight">Bem-vindo de volta</h2>
-        <p className="text-sm text-white/35">Entre para continuar no seu estúdio</p>
+      <div className="mb-6 text-center">
+        <h3 className="text-lg font-semibold text-white/80 mb-1">Entrar na sua conta</h3>
+        <p className="text-xs text-white/30">Acesse o painel do seu estúdio</p>
       </div>
 
       {/* Error */}
       {error && (
-        <div className="mb-5 px-4 py-3 rounded-xl bg-red-500/[0.08] border border-red-500/20 text-red-400 text-sm">
+        <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/[0.08] border border-red-500/20 text-red-400 text-sm">
           {error}
         </div>
       )}
@@ -56,13 +56,13 @@ export default function Login() {
             Email
           </label>
           <div className="relative">
-            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+            <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
             <input
               type="email"
               placeholder="voce@estudio.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-primary/40 focus:bg-white/[0.06] transition-all"
+              className="w-full bg-black/20 border border-primary/[0.15] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-primary/40 focus:bg-black/30 transition-all"
               required
             />
           </div>
@@ -76,19 +76,19 @@ export default function Login() {
             </label>
             <Link
               to="/forgot-password"
-              className="text-[11px] text-white/30 hover:text-white/60 transition-colors"
+              className="text-[11px] text-white/25 hover:text-white/50 transition-colors"
             >
               Esqueceu a senha?
             </Link>
           </div>
           <div className="relative">
-            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/25" />
+            <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
             <input
               type="password"
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-primary/40 focus:bg-white/[0.06] transition-all"
+              className="w-full bg-black/20 border border-primary/[0.15] rounded-xl pl-10 pr-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-primary/40 focus:bg-black/30 transition-all"
               required
             />
           </div>
@@ -98,7 +98,7 @@ export default function Login() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full mt-2 bg-primary hover:bg-primary/90 text-[#080a0d] font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 active:scale-[0.99]"
+          className="w-full mt-2 bg-primary hover:bg-primary/90 text-[#060d09] font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 active:scale-[0.99]"
         >
           {loading ? (
             <><Loader2 className="w-4 h-4 animate-spin" /> Entrando...</>
@@ -108,7 +108,7 @@ export default function Login() {
         </button>
       </form>
 
-      <p className="text-center text-[11px] text-white/15 mt-8">
+      <p className="text-center text-[10px] text-white/15 mt-6">
         Registro disponível apenas por convite
       </p>
     </AuthLayout>
