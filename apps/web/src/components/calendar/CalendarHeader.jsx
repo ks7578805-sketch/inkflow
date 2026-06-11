@@ -1,120 +1,95 @@
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, ChevronRight, Plus, CalendarDays } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { format, addDays, addWeeks, addMonths, startOfWeek, endOfWeek } from "date-fns";
+import { ChevronLeft, ChevronRight, SlidersHorizontal } from "lucide-react";
+import { format, addMonths, addWeeks, addDays, startOfWeek, endOfWeek } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 const VIEWS = [
-  { id: "day", label: "Dia" },
-  { id: "week", label: "Semana" },
   { id: "month", label: "Mês" },
+  { id: "week", label: "Semana" },
+  { id: "day", label: "Dia" },
 ];
 
-function formatDateLabel(date, view) {
-  if (view === "day") return format(date, "d 'de' MMMM, yyyy", { locale: ptBR });
+function periodLabel(cursor, view) {
+  if (view === "day") return format(cursor, "d 'de' MMMM, yyyy", { locale: ptBR });
   if (view === "week") {
-    const start = startOfWeek(date, { weekStartsOn: 1 });
-    const end = endOfWeek(date, { weekStartsOn: 1 });
-    if (start.getMonth() === end.getMonth()) {
-      return `${format(start, "d")} – ${format(end, "d 'de' MMMM, yyyy", { locale: ptBR })}`;
-    }
-    return `${format(start, "d MMM", { locale: ptBR })} – ${format(end, "d MMM yyyy", { locale: ptBR })}`;
+    const s = startOfWeek(cursor, { weekStartsOn: 1 });
+    const e = endOfWeek(cursor, { weekStartsOn: 1 });
+    return s.getMonth() === e.getMonth()
+      ? `${format(s, "d")}–${format(e, "d 'de' MMMM", { locale: ptBR })}`
+      : `${format(s, "d MMM", { locale: ptBR })} – ${format(e, "d MMM", { locale: ptBR })}`;
   }
-  return format(date, "MMMM yyyy", { locale: ptBR });
+  return format(cursor, "MMMM yyyy", { locale: ptBR });
 }
 
-function navigate(date, view, dir) {
-  if (view === "day") return addDays(date, dir);
-  if (view === "week") return addWeeks(date, dir);
-  return addMonths(date, dir);
+function step(cursor, view, dir) {
+  if (view === "day") return addDays(cursor, dir);
+  if (view === "week") return addWeeks(cursor, dir);
+  return addMonths(cursor, dir);
 }
 
-export default function CalendarHeader({ date, view, artist, artistOptions, onDateChange, onViewChange, onArtistChange, onNewSession }) {
-  const label = formatDateLabel(date, view);
-  const isToday = format(date, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+export default function CalendarHeader({ cursor, view, onCursorChange, onViewChange, onToday }) {
+  const isCurrentPeriod =
+    format(cursor, "yyyy-MM") === format(new Date(), "yyyy-MM");
 
   return (
-    <div className="flex flex-col gap-3 mb-4">
-      {/* Top row */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        {/* Date nav */}
-        <div className="flex items-center gap-1.5">
-          <Button
-            variant="outline" size="icon"
-            className="h-8 w-8 border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-white/60 hover:text-white"
-            onClick={() => onDateChange(navigate(date, view, -1))}
+    <div className="flex items-center justify-between gap-3 flex-wrap">
+      {/* Period navigation */}
+      <div className="flex items-center gap-1">
+        <button
+          onClick={() => onCursorChange(step(cursor, view, -1))}
+          className="h-8 w-8 grid place-items-center rounded-lg text-white/45 hover:text-white hover:bg-white/[0.05] transition-colors"
+          aria-label="Período anterior"
+        >
+          <ChevronLeft className="w-[18px] h-[18px]" />
+        </button>
+
+        <h2 className="text-[15px] font-semibold text-white capitalize tracking-tight min-w-[150px] text-center select-none">
+          {periodLabel(cursor, view)}
+        </h2>
+
+        <button
+          onClick={() => onCursorChange(step(cursor, view, 1))}
+          className="h-8 w-8 grid place-items-center rounded-lg text-white/45 hover:text-white hover:bg-white/[0.05] transition-colors"
+          aria-label="Próximo período"
+        >
+          <ChevronRight className="w-[18px] h-[18px]" />
+        </button>
+
+        {!isCurrentPeriod && (
+          <button
+            onClick={onToday}
+            className="ml-1 h-8 px-2.5 rounded-lg text-xs font-medium text-[#1db884] hover:bg-[#1db884]/[0.08] transition-colors"
           >
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
+            Hoje
+          </button>
+        )}
+      </div>
 
-          <div className="flex items-center gap-2 px-1">
-            <CalendarDays className="w-4 h-4 text-muted-foreground hidden sm:block" />
-            <h2 className="text-sm md:text-base font-semibold text-foreground capitalize min-w-[160px]">{label}</h2>
-          </div>
-
-          <Button
-            variant="outline" size="icon"
-            className="h-8 w-8 border-white/[0.08] bg-white/[0.03] hover:bg-white/[0.07] text-white/60 hover:text-white"
-            onClick={() => onDateChange(navigate(date, view, 1))}
-          >
-            <ChevronRight className="w-4 h-4" />
-          </Button>
-
-          {!isToday && (
-            <Button
-              variant="ghost" size="sm"
-              className="text-xs text-primary hover:text-primary/80 h-8 px-2.5"
-              onClick={() => onDateChange(new Date())}
+      {/* View toggle + filter */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-0.5 rounded-lg bg-white/[0.03] border border-white/[0.06] p-0.5">
+          {VIEWS.map((v) => (
+            <button
+              key={v.id}
+              onClick={() => onViewChange(v.id)}
+              className={cn(
+                "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                view === v.id
+                  ? "bg-white/[0.08] text-white"
+                  : "text-white/45 hover:text-white/80",
+              )}
             >
-              Hoje
-            </Button>
-          )}
+              {v.label}
+            </button>
+          ))}
         </div>
 
-        {/* Right controls */}
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Artist filter */}
-          <Select value={artist} onValueChange={onArtistChange}>
-            <SelectTrigger className="h-8 w-36 text-xs bg-white/[0.04] border-white/[0.08]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {artistOptions.map((artistOption) => (
-                <SelectItem key={artistOption.id} value={artistOption.id} className="text-xs">{artistOption.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* View switcher */}
-          <div className="flex items-center bg-white/[0.03] border border-white/[0.07] rounded-lg p-0.5 gap-0.5">
-            {VIEWS.map((v) => (
-              <button
-                key={v.id}
-                onClick={() => onViewChange(v.id)}
-                className={cn(
-                  "px-3 py-1 text-xs font-medium rounded-md transition-all",
-                  view === v.id
-                    ? "bg-primary text-primary-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {v.label}
-              </button>
-            ))}
-          </div>
-
-          {/* New session */}
-          <Button
-            size="sm"
-            onClick={onNewSession}
-            className="h-8 bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 text-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Nova Sessão</span>
-            <span className="sm:hidden">Nova</span>
-          </Button>
-        </div>
+        <button
+          className="h-8 w-8 grid place-items-center rounded-lg text-white/45 hover:text-white hover:bg-white/[0.05] border border-white/[0.06] transition-colors"
+          aria-label="Filtros"
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

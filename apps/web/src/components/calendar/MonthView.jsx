@@ -1,93 +1,138 @@
+import { useMemo } from "react";
+import {
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  format,
+} from "date-fns";
 import { cn } from "@/lib/utils";
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, addDays, isSameMonth, isSameDay } from "date-fns";
+import {
+  getSessionsByDate,
+  getSessionColor,
+  firstName,
+  STATUS_COLORS,
+} from "@/data/calendarMock";
 
-const DAY_LABELS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+const WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+const MAX_CHIPS = 3;
 
-export default function MonthView({ date, sessions, onDayClick, onSelect }) {
+function SessionChip({ session }) {
+  const color = getSessionColor(session);
+  const muted = session.status === "cancelado";
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-1.5 rounded-md px-1.5 py-[3px] text-[11px] leading-none transition-colors",
+        muted && "opacity-50",
+      )}
+      style={{ backgroundColor: color.chipBg }}
+    >
+      <span
+        className="h-1.5 w-1.5 shrink-0 rounded-full"
+        style={{ backgroundColor: color.dot }}
+      />
+      <span className="shrink-0 tabular-nums text-white/45">
+        {session.horarioInicio.slice(0, 5)}
+      </span>
+      <span className="truncate text-white/85">{firstName(session.clienteNome)}</span>
+    </div>
+  );
+}
+
+export default function MonthView({ cursor, selectedDay, onSelectDay }) {
   const today = new Date();
-  const monthStart = startOfMonth(date);
-  const monthEnd = endOfMonth(date);
-  const gridStart = startOfWeek(monthStart, { weekStartsOn: 1 });
-  const gridEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
 
-  const days = [];
-  let cur = gridStart;
-  while (cur <= gridEnd) {
-    days.push(cur);
-    cur = addDays(cur, 1);
-  }
-
-  const weeks = [];
-  for (let i = 0; i < days.length; i += 7) {
-    weeks.push(days.slice(i, i + 7));
-  }
+  const days = useMemo(() => {
+    const gridStart = startOfWeek(startOfMonth(cursor), { weekStartsOn: 1 });
+    const gridEnd = endOfWeek(endOfMonth(cursor), { weekStartsOn: 1 });
+    return eachDayOfInterval({ start: gridStart, end: gridEnd });
+  }, [cursor]);
 
   return (
-    <div className="flex-1 bg-card border border-border/50 rounded-xl overflow-auto">
-      {/* Header */}
-      <div className="grid grid-cols-7 border-b border-border/30">
-        {DAY_LABELS.map((d) => (
-          <div key={d} className="py-2.5 text-center text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-            {d}
+    <div className="flex flex-1 flex-col min-h-0">
+      {/* Weekday header */}
+      <div className="grid grid-cols-7 border-b border-white/[0.06]">
+        {WEEKDAYS.map((wd) => (
+          <div
+            key={wd}
+            className="px-2 py-2 text-[10px] font-semibold uppercase tracking-[0.08em] text-white/30"
+          >
+            {wd}
           </div>
         ))}
       </div>
 
-      {/* Weeks */}
-      <div className="divide-y divide-border/20">
-        {weeks.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7 divide-x divide-border/20" style={{ minHeight: "96px" }}>
-            {week.map((day, di) => {
-              const dateStr = format(day, "yyyy-MM-dd");
-              const daySessions = sessions.filter(s => s.date === dateStr).sort((a, b) => a.time.localeCompare(b.time));
-              const inMonth = isSameMonth(day, date);
-              const isToday = isSameDay(day, today);
+      {/* Day grid */}
+      <div
+        className="grid flex-1 grid-cols-7"
+        style={{ gridTemplateRows: `repeat(${days.length / 7}, minmax(0, 1fr))` }}
+      >
+        {days.map((day) => {
+          const dateStr = format(day, "yyyy-MM-dd");
+          const sessions = getSessionsByDate(dateStr);
+          const inMonth = isSameMonth(day, cursor);
+          const isToday = isSameDay(day, today);
+          const isSelected = selectedDay && isSameDay(day, selectedDay);
+          const visible = sessions.slice(0, MAX_CHIPS);
+          const overflow = sessions.length - visible.length;
 
-              return (
-                <button
-                  key={di}
-                  onClick={() => onDayClick(day)}
+          return (
+            <button
+              key={dateStr}
+              onClick={() => onSelectDay(day)}
+              className={cn(
+                "group relative flex flex-col gap-1 border-b border-r border-white/[0.06] p-1.5 text-left transition-colors",
+                "hover:bg-white/[0.02] focus:outline-none",
+                !inMonth && "opacity-35",
+                isSelected && "bg-[#1db884]/[0.04]",
+              )}
+            >
+              {/* Date number */}
+              <div className="flex items-center justify-between">
+                <span
                   className={cn(
-                    "p-1.5 text-left transition-colors hover:bg-muted/20 align-top",
-                    !inMonth && "opacity-30",
-                    isToday && "bg-primary/5"
+                    "grid h-6 w-6 place-items-center rounded-full text-xs tabular-nums transition-colors",
+                    isToday
+                      ? "bg-[#1db884] font-semibold text-[#08090a] shadow-[0_0_12px_rgba(29,184,132,0.45)]"
+                      : cn(
+                          "font-medium text-white/55",
+                          inMonth && "group-hover:text-white/80",
+                        ),
                   )}
                 >
-                  <div className={cn(
-                    "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold mb-1",
-                    isToday ? "bg-primary text-primary-foreground" : "text-foreground/80"
-                  )}>
-                    {format(day, "d")}
-                  </div>
+                  {format(day, "d")}
+                </span>
+              </div>
 
-                  <div className="space-y-0.5">
-                    {daySessions.slice(0, 2).map((session) => {
-                      return (
-                        <div
-                          key={session.id}
-                          onClick={(e) => { e.stopPropagation(); onSelect(session); }}
-                          className={cn(
-                            "text-[9px] px-1.5 py-0.5 rounded font-medium truncate w-full text-left transition-all hover:opacity-80",
-                            session.status === "Concluída" ? "bg-muted/40 text-muted-foreground" :
-                            session.status === "Aguardando depósito" ? "bg-amber-500/15 text-amber-400" :
-                            session.status === "Cancelada" ? "bg-destructive/15 text-destructive" :
-                            session.status === "Em andamento" ? "bg-blue-500/15 text-blue-400" :
-                            "bg-primary/15 text-primary"
-                          )}
-                        >
-                          {session.time} {session.client}
-                        </div>
-                      );
-                    })}
-                    {daySessions.length > 2 && (
-                      <div className="text-[9px] text-muted-foreground px-1.5 py-0.5 bg-muted/20 rounded font-medium">
-                        +{daySessions.length - 2} mais
-                      </div>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+              {/* Session chips */}
+              <div className="flex flex-col gap-[3px] overflow-hidden">
+                {visible.map((s) => (
+                  <SessionChip key={s.id} session={s} />
+                ))}
+                {overflow > 0 && (
+                  <span className="px-1.5 text-[10px] font-medium text-white/35">
+                    +{overflow}
+                  </span>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 px-1 pt-3">
+        {Object.values(STATUS_COLORS).map((c) => (
+          <div key={c.label} className="flex items-center gap-1.5">
+            <span
+              className="h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: c.dot }}
+            />
+            <span className="text-[11px] text-white/40">{c.label}</span>
           </div>
         ))}
       </div>

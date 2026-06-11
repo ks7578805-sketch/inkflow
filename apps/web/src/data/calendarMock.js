@@ -31,12 +31,56 @@ export const STATUS_COLORS = {
   },
 };
 
-// Returns color config for a session. When corEtiqueta is set (future WhatsApp sync),
-// it will build a custom color from that hex; falls back to status color.
-export function getSessionColor(session) {
-  // Future: if (session.corEtiqueta) return buildColorFromHex(session.corEtiqueta);
-  return STATUS_COLORS[session.status] ?? STATUS_COLORS.confirmado;
+// Status style map keyed by the API status labels (capitalized PT-BR).
+// Consumed by DayView, WeekView and SessionDetailPanel — values are Tailwind classes.
+export const SESSION_STATUS = {
+  "Confirmada": { bar: "bg-primary", dot: "bg-primary", color: "bg-primary/10 border-primary/20 text-primary" },
+  "Concluída": { bar: "bg-muted-foreground/40", dot: "bg-muted-foreground/40", color: "bg-muted/30 border-border/30 text-muted-foreground" },
+  "Em andamento": { bar: "bg-blue-500", dot: "bg-blue-500", color: "bg-blue-500/10 border-blue-500/20 text-blue-500" },
+  "Aguardando depósito": { bar: "bg-amber-500", dot: "bg-amber-500", color: "bg-amber-500/10 border-amber-500/20 text-amber-500" },
+  "Cancelada": { bar: "bg-destructive", dot: "bg-destructive", color: "bg-destructive/10 border-destructive/20 text-destructive" },
+};
+
+// Builds a full color config from a single hex (e.g. a synced WhatsApp label color).
+// Keeps the same shape as STATUS_COLORS so consumers stay agnostic to the source.
+function buildColorFromHex(hex) {
+  const m = hex.replace("#", "").match(/.{1,2}/g);
+  if (!m || m.length < 3) return STATUS_COLORS.confirmado;
+  const [r, g, b] = m.map((h) => parseInt(h, 16));
+  const rgba = (a) => `rgba(${r},${g},${b},${a})`;
+  return {
+    dot: hex,
+    chipBg: rgba(0.09),
+    chipBorder: rgba(0.18),
+    chipText: hex,
+    bar: hex,
+    label: "Etiqueta",
+  };
 }
+
+// Returns color config for a session. A per-client/label color (corEtiqueta) takes
+// precedence — this is where synced WhatsApp label colors will plug in — and falls
+// back to the status color when absent.
+export function getSessionColor(session) {
+  if (session?.corEtiqueta) return buildColorFromHex(session.corEtiqueta);
+  return STATUS_COLORS[session?.status] ?? STATUS_COLORS.confirmado;
+}
+
+// ── Session helpers (pure, mock-shape; mirror the future API contract) ──────────
+export const firstName = (fullName = "") => fullName.trim().split(/\s+/)[0] ?? "";
+
+export const shortTime = (hhmm = "") => hhmm.slice(0, 5);
+
+export function sessionDuration(session) {
+  const [sh, sm] = session.horarioInicio.split(":").map(Number);
+  const [eh, em] = session.horarioFim.split(":").map(Number);
+  return (eh * 60 + em - (sh * 60 + sm)) / 60;
+}
+
+export const getSessionsByDate = (dateStr) =>
+  MOCK_SESSIONS.filter((s) => s.data === dateStr).sort((a, b) =>
+    a.horarioInicio.localeCompare(b.horarioInicio),
+  );
 
 // Session data — all dates dynamic relative to new Date().
 // Fields match the future API contract: id, clienteNome, estilo, horarioInicio,
