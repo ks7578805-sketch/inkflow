@@ -29,6 +29,11 @@ enum StencilGenerationStatus {
 }
 
 enum StencilVariantKind {
+  // Current 3 variants — one per style preset (fineline / blackwork / realismo).
+  fineline
+  blackwork
+  realismo
+  // Legacy values kept so historical rows remain valid. Not produced by new code.
   line_only
   light_shade
   heavy_shade
@@ -209,6 +214,7 @@ model StencilGeneration {
   layerCount     Int
   lineColor      String
   outputSize     String
+  provider       String                  @default("google")
   analysisJson   Json?
   status         StencilGenerationStatus @default(PENDING)
   savedVersionId String?

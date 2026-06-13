@@ -1,7 +1,8 @@
 import { buildApiUrl } from '@/lib/api';
 
-const STENCIL_STYLE_PRESETS = ['fine', 'bold', 'dotwork', 'traditional', 'geometric', 'realism'];
+const STENCIL_STYLE_PRESETS = ['fineline', 'blackwork', 'realismo'];
 const STENCIL_OUTPUT_SIZES = ['a4', 'a3', 'letter', 'custom'];
+const STENCIL_PROVIDERS = ['google', 'openai'];
 
 async function parseResponse(response) {
   let data = null;
@@ -48,6 +49,10 @@ export async function createStencilGeneration(payload) {
 
   if (!STENCIL_OUTPUT_SIZES.includes(payload.outputSize)) {
     throw new Error('Tamanho de saída inválido.');
+  }
+
+  if (payload.provider !== undefined && !STENCIL_PROVIDERS.includes(payload.provider)) {
+    throw new Error('Provider de IA inválido.');
   }
 
   const response = await fetch(buildApiUrl('/v1/stencil/generations'), {

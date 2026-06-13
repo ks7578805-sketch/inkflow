@@ -11,7 +11,10 @@ import {
   Cpu,
   Layers,
   Sparkles,
-  ArrowLeftCircle,
+  Save,
+  Download,
+  FileOutput,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
@@ -24,13 +27,6 @@ const processingSteps = [
   { label: "Refinando stencil", icon: Wand2 },
   { label: "Finalizando versões", icon: Layers },
 ];
-
-const OUTPUT_SIZE_VIEWPORTS = {
-  a4: { width: 2480, height: 3508 },
-  a3: { width: 3508, height: 4961 },
-  letter: { width: 2550, height: 3300 },
-  custom: { width: 2480, height: 3508 },
-};
 
 function StencilSVG({ className = "" }) {
   return (
@@ -48,58 +44,44 @@ function StencilSVG({ className = "" }) {
   );
 }
 
-function getViewport(selectedVersion) {
+// Canvas aspect ratio comes from the SOURCE image (or the rendered stencil
+// when source dims aren't known yet). Both original and stencil fill the
+// canvas edge-to-edge, so the opacity overlay aligns 1:1 — no centred margins,
+// no aspect-mismatch when scrubbing.
+function getPreviewAspect(selectedVersion) {
+  const meta = selectedVersion?.metadata || {};
+  if (meta.sourceWidth && meta.sourceHeight) {
+    return meta.sourceWidth / meta.sourceHeight;
+  }
   if (selectedVersion?.width && selectedVersion?.height) {
-    return { width: selectedVersion.width, height: selectedVersion.height };
+    return selectedVersion.width / selectedVersion.height;
   }
-
-  const fallback = OUTPUT_SIZE_VIEWPORTS[selectedVersion?.metadata?.outputSize] || OUTPUT_SIZE_VIEWPORTS.a4;
-  return fallback;
+  return 2480 / 3508; // A4 fallback
 }
 
-function calculateContainRect(sourceWidth, sourceHeight, targetWidth, targetHeight) {
-  if (!sourceWidth || !sourceHeight || !targetWidth || !targetHeight) {
-    return { x: 0, y: 0, width: targetWidth, height: targetHeight };
-  }
-
-  const scale = Math.min(targetWidth / sourceWidth, targetHeight / sourceHeight);
-  const width = sourceWidth * scale;
-  const height = sourceHeight * scale;
-
-  return {
-    x: (targetWidth - width) / 2,
-    y: (targetHeight - height) / 2,
-    width,
-    height,
-  };
-}
-
-function SharedPreviewStage({ imageUrl, stencilUrl, selectedVersion, mode, dividerX, stencilOpacity, onDividerChange }) {
-  const viewport = useMemo(() => getViewport(selectedVersion), [selectedVersion]);
+function SharedPreviewStage({ imageUrl, stencilUrl, selectedVersion, dividerX, stencilOpacity, onDividerChange }) {
+  const aspectRatio = useMemo(() => getPreviewAspect(selectedVersion), [selectedVersion]);
   const containerRef = useRef(null);
   const draggingRef = useRef(false);
 
-  const sourceWidth = selectedVersion?.metadata?.sourceWidth || null;
-  const sourceHeight = selectedVersion?.metadata?.sourceHeight || null;
-  const originalRect = useMemo(
-    () => calculateContainRect(sourceWidth, sourceHeight, viewport.width, viewport.height),
-    [sourceWidth, sourceHeight, viewport.height, viewport.width],
-  );
-
   const updateDivider = (clientX) => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !onDividerChange) return;
     const rect = containerRef.current.getBoundingClientRect();
     const next = ((clientX - rect.left) / rect.width) * 100;
-    onDividerChange(Math.max(5, Math.min(95, next)));
+    onDividerChange(Math.max(2, Math.min(98, next)));
   };
 
   const handlePointerDown = (event) => {
+    event.preventDefault();
     draggingRef.current = true;
     updateDivider(event.clientX);
+    if (event.target?.setPointerCapture && event.pointerId !== undefined) {
+      try { event.target.setPointerCapture(event.pointerId); } catch (_e) { /* noop */ }
+    }
   };
 
   const handlePointerMove = (event) => {
-    if (!draggingRef.current || mode !== "compare") return;
+    if (!draggingRef.current) return;
     updateDivider(event.clientX);
   };
 
@@ -107,58 +89,75 @@ function SharedPreviewStage({ imageUrl, stencilUrl, selectedVersion, mode, divid
     draggingRef.current = false;
   };
 
-  const originalStyle = {
-    left: `${(originalRect.x / viewport.width) * 100}%`,
-    top: `${(originalRect.y / viewport.height) * 100}%`,
-    width: `${(originalRect.width / viewport.width) * 100}%`,
-    height: `${(originalRect.height / viewport.height) * 100}%`,
-  };
-
   return (
     <div className="flex-1 w-full min-h-0 flex items-center justify-center">
       <div
         ref={containerRef}
-        className="relative w-full max-w-[980px] max-h-full rounded-2xl overflow-hidden border border-border/30 shadow-2xl bg-white select-none"
-        style={{ aspectRatio: `${viewport.width} / ${viewport.height}` }}
+        className="relative w-full h-full max-w-full max-h-full rounded-md overflow-hidden border border-foreground/[0.08] shadow-2xl bg-white select-none"
+        style={{ aspectRatio, maxHeight: "100%", maxWidth: "100%", cursor: stencilUrl ? "col-resize" : "default" }}
+        onPointerDown={stencilUrl ? handlePointerDown : undefined}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       >
         <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(15,23,42,0.015)_25%,transparent_25%,transparent_50%,rgba(15,23,42,0.015)_50%,rgba(15,23,42,0.015)_75%,transparent_75%,transparent)] bg-[length:18px_18px]" />
+
+        {/* Original — always full coverage */}
         {imageUrl && (
-          <div className="absolute inset-0">
-            <div className="absolute overflow-hidden" style={originalStyle}>
-              <img src={imageUrl} alt="original" className="w-full h-full object-cover" draggable={false} />
-            </div>
-          </div>
+          <img
+            src={imageUrl}
+            alt="original"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            draggable={false}
+          />
         )}
+
+        {/* Stencil overlay — clipped by divider AND attenuated by opacity, so
+            the user can tune both knobs simultaneously. Setting opacity to 0
+            effectively hides the stencil (sees the original everywhere);
+            setting divider to 100 also hides it. */}
         {stencilUrl ? (
           <div
-            className="absolute inset-0"
-            style={mode === "compare" ? { clipPath: `inset(0 ${100 - dividerX}% 0 0)` } : { opacity: stencilOpacity / 100 }}
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              clipPath: `inset(0 0 0 ${dividerX}%)`,
+              opacity: stencilOpacity / 100,
+            }}
           >
-            <img src={stencilUrl} alt="stencil" className="w-full h-full object-contain" draggable={false} />
+            <img
+              src={stencilUrl}
+              alt="stencil"
+              className="absolute inset-0 w-full h-full object-cover"
+              draggable={false}
+            />
           </div>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <StencilSVG className="w-full h-full max-h-[80%] max-w-[60%]" />
           </div>
         )}
-        <div className="absolute top-3 left-3 rounded-lg bg-black/60 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-white/90 backdrop-blur-sm">
-          Original
+
+        {/* Labels — ANTES on the visible original side, DEPOIS on the stencil side */}
+        <div className="absolute top-3 left-3 rounded-sm bg-black/65 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/95 backdrop-blur-sm z-20">
+          Antes
         </div>
-        <div className="absolute top-3 right-3 rounded-lg bg-black/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-black/55">
-          Stencil
-        </div>
-        {mode === "compare" && (
+        {stencilUrl && (
+          <div className="absolute top-3 right-3 rounded-sm bg-black/65 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-white/95 backdrop-blur-sm z-20">
+            Depois
+          </div>
+        )}
+
+        {/* Vertical divider with circular handle */}
+        {stencilUrl && (
           <div
-            className="absolute top-0 bottom-0 z-20 flex items-center justify-center cursor-col-resize touch-none"
+            className="absolute top-0 bottom-0 z-30 flex items-center justify-center cursor-col-resize touch-none"
             style={{ left: `calc(${dividerX}% - 1px)` }}
-            onPointerDown={handlePointerDown}
           >
-            <div className="w-0.5 h-full bg-primary/80 shadow-[0_0_10px_rgba(52,211,153,0.5)]" />
-            <div className="absolute flex h-8 w-8 items-center justify-center rounded-full border-2 border-primary bg-background shadow-[0_0_12px_rgba(52,211,153,0.4)]">
-              <span className="select-none text-[10px] font-bold text-primary">↔</span>
+            <div className="w-0.5 h-full bg-primary/85 shadow-[0_0_12px_rgba(39,134,95,0.55)]" />
+            <div className="absolute flex h-9 w-9 items-center justify-center rounded-full border-2 border-primary bg-card/95 backdrop-blur-sm shadow-[0_0_18px_rgba(39,134,95,0.45)]">
+              <svg className="w-3.5 h-3.5 text-primary" viewBox="0 0 16 16" fill="none">
+                <path d="M3 8h10M6 4l-4 4 4 4M10 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
             </div>
           </div>
         )}
@@ -177,14 +176,15 @@ export default function StencilCenterArea({
   onDragOver,
   onDragLeave,
   onDrop,
+  onSave,
+  onExportPdf,
+  onExportPng,
   isMobile = false,
 }) {
-  const [previewMode, setPreviewMode] = useState("compare");
   const [dividerX, setDividerX] = useState(50);
   const [stencilOpacity, setStencilOpacity] = useState([100]);
 
   useEffect(() => {
-    setPreviewMode("compare");
     setDividerX(50);
     setStencilOpacity([100]);
   }, [selectedVersion?.id]);
@@ -194,13 +194,16 @@ export default function StencilCenterArea({
   return (
     <div
       className={cn(
-        "bg-card border border-border/50 rounded-xl overflow-hidden relative flex items-center justify-center",
+        "relative bg-card/95 border border-foreground/[0.07] rounded-md overflow-hidden flex items-center justify-center",
+        "shadow-[0_12px_36px_-16px_rgba(0,0,0,0.7)]",
         isMobile ? "w-full min-h-[300px]" : "flex-1 min-w-0 min-h-0",
       )}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
+      {/* Top hairline — primary emerald, anchors the eye like the sidebar cards */}
+      <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent z-10" />
       <AnimatePresence mode="wait">
         {!image && !isGenerating && !hasResult && (
           <motion.div
@@ -214,25 +217,22 @@ export default function StencilCenterArea({
             <div
               className="absolute inset-0 pointer-events-none"
               style={{
-                backgroundImage: "radial-gradient(circle, hsl(160 84% 39% / 0.06) 1px, transparent 1px)",
+                backgroundImage: "radial-gradient(circle, hsl(158 55% 34% / 0.05) 1px, transparent 1px)",
                 backgroundSize: "28px 28px",
               }}
             />
-            <div className="relative mb-7">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-muted/50 to-muted/10 border border-border/30 flex items-center justify-center">
-                <Wand2 className="w-9 h-9 text-muted-foreground/15" />
+            <div className="relative mb-6">
+              <div className="w-20 h-20 rounded-md bg-card/70 border border-foreground/[0.08] flex items-center justify-center">
+                <Wand2 className="w-8 h-8 text-foreground/25" />
               </div>
-              <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-primary/25 border border-primary/40 animate-pulse" />
-              <div className="absolute -bottom-1 -left-2 w-2.5 h-2.5 rounded-full bg-primary/15 border border-primary/25 animate-pulse" style={{ animationDelay: "600ms" }} />
+              <span className="absolute -top-px inset-x-2 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
             </div>
-            <h3 className="text-base font-semibold text-foreground/50 mb-2">Adicione uma referência</h3>
-            <p className="text-sm text-muted-foreground/35 leading-relaxed mb-5">
-              Carregue uma imagem no painel à esquerda, escolha um estilo e gere o stencil aqui
+            <h3 className="text-[14px] font-bold uppercase tracking-[0.16em] text-foreground/75 mb-2">
+              Pré-visualização
+            </h3>
+            <p className="text-[12px] text-foreground/40 leading-relaxed max-w-[34ch]">
+              Suba uma referência na <span className="text-primary font-semibold">Etapa 01</span> à esquerda pra começar.
             </p>
-            <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground/25">
-              <ArrowLeftCircle className="w-3.5 h-3.5" />
-              Comece pelo painel de referência
-            </div>
           </motion.div>
         )}
 
@@ -313,7 +313,7 @@ export default function StencilCenterArea({
                       i < currentStep
                         ? "bg-primary/5 border-primary/10 opacity-40"
                         : i === currentStep
-                          ? "bg-primary/10 border-primary/30 shadow-[0_0_16px_rgba(52,211,153,0.1)]"
+                          ? "bg-primary/10 border-primary/30 shadow-[0_0_16px_rgba(39,134,95,0.1)]"
                           : "bg-muted/5 border-transparent",
                     )}
                   >
@@ -350,36 +350,33 @@ export default function StencilCenterArea({
             transition={{ duration: 0.3 }}
             className="relative w-full h-full flex flex-col items-center justify-center p-4 md:p-5 gap-4"
           >
-            <div className="flex flex-wrap items-center justify-center gap-2 z-10 shrink-0">
-              <div className="rounded-xl border border-border/40 bg-card/80 p-1 backdrop-blur-sm">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={previewMode === "compare" ? "default" : "ghost"}
-                  className="h-8 px-3 text-xs"
-                  onClick={() => setPreviewMode("compare")}
-                >
-                  Comparar
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={previewMode === "overlay" ? "default" : "ghost"}
-                  className="h-8 px-3 text-xs"
-                  onClick={() => setPreviewMode("overlay")}
-                >
-                  Overlay
-                </Button>
-              </div>
-              <div className="min-w-[220px] rounded-xl border border-border/40 bg-card/80 px-3 py-2 backdrop-blur-sm">
-                <div className="mb-1.5 flex items-center justify-between text-[10px] font-medium text-muted-foreground/70">
-                  <span>{previewMode === "compare" ? "Divisor" : "Opacidade do stencil"}</span>
-                  <span>{previewMode === "compare" ? `${Math.round(dividerX)}%` : `${stencilOpacity[0]}%`}</span>
+            <div className="flex flex-wrap items-center justify-center gap-3 z-10 shrink-0">
+              {/* Divisor slider — controls the vertical clip-path */}
+              <div className="min-w-[220px] rounded-md border border-foreground/[0.08] bg-card/85 px-3 py-2 backdrop-blur-sm">
+                <div className="mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.14em] text-foreground/55">
+                  <span>Divisor</span>
+                  <span className="text-foreground/85 font-mono">{Math.round(dividerX)}%</span>
                 </div>
                 <Slider
-                  value={previewMode === "compare" ? [dividerX] : stencilOpacity}
-                  onValueChange={previewMode === "compare" ? ([value]) => setDividerX(value) : setStencilOpacity}
-                  min={5}
+                  value={[dividerX]}
+                  onValueChange={([value]) => setDividerX(value)}
+                  min={2}
+                  max={98}
+                  step={1}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Opacidade slider — controls overlay alpha (independent of divider) */}
+              <div className="min-w-[220px] rounded-md border border-foreground/[0.08] bg-card/85 px-3 py-2 backdrop-blur-sm">
+                <div className="mb-1.5 flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.14em] text-foreground/55">
+                  <span>Opacidade</span>
+                  <span className="text-foreground/85 font-mono">{stencilOpacity[0]}%</span>
+                </div>
+                <Slider
+                  value={stencilOpacity}
+                  onValueChange={setStencilOpacity}
+                  min={0}
                   max={100}
                   step={1}
                   className="w-full"
@@ -391,27 +388,78 @@ export default function StencilCenterArea({
               imageUrl={imageUrl}
               stencilUrl={buildApiUrl(selectedVersion?.publicUrl)}
               selectedVersion={selectedVersion}
-              mode={previewMode}
               dividerX={dividerX}
               stencilOpacity={stencilOpacity[0]}
               onDividerChange={setDividerX}
             />
 
-            <div className="z-10 shrink-0 rounded-lg bg-muted/30 border border-border/30 px-3 py-1.5 text-[10px] font-medium text-muted-foreground/60">
-              {previewMode === "compare"
-                ? "Original e stencil usam a mesma área visível para comparação precisa"
-                : "Ajuste a transparência do stencil mantendo a original fixa abaixo"}
+            <div className="z-10 shrink-0 flex flex-col items-center gap-2.5 w-full max-w-[720px]">
+              {/* Action row: Save / PDF / PNG — merged from former StencilRightPanel */}
+              {(onSave || onExportPdf || onExportPng) && (
+                <div className="w-full grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={onSave}
+                    disabled={!onSave || !selectedVersion}
+                    className={cn(
+                      "group flex items-center justify-center gap-2 h-10 rounded-xl border text-[12px] font-semibold transition-all",
+                      "border-[#27865f]/30 bg-card/80 text-foreground/80 backdrop-blur-sm",
+                      "hover:border-primary/55 hover:bg-primary/[0.08] hover:text-primary",
+                      "disabled:opacity-30 disabled:cursor-not-allowed",
+                    )}
+                  >
+                    <Save className="w-3.5 h-3.5 text-muted-foreground/70 group-hover:text-primary transition-colors" />
+                    Salvar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onExportPdf}
+                    disabled={!onExportPdf || !selectedVersion}
+                    className={cn(
+                      "group flex items-center justify-center gap-2 h-10 rounded-xl border text-[12px] font-semibold transition-all",
+                      "border-[#27865f]/30 bg-card/80 text-foreground/80 backdrop-blur-sm",
+                      "hover:border-primary/55 hover:bg-primary/[0.08] hover:text-primary",
+                      "disabled:opacity-30 disabled:cursor-not-allowed",
+                    )}
+                  >
+                    <FileOutput className="w-3.5 h-3.5 text-muted-foreground/70 group-hover:text-primary transition-colors" />
+                    PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onExportPng}
+                    disabled={!onExportPng || !selectedVersion}
+                    className={cn(
+                      "group flex items-center justify-center gap-2 h-10 rounded-xl border text-[12px] font-semibold transition-all",
+                      "border-primary/40 bg-primary/[0.08] text-primary",
+                      "hover:bg-primary/[0.14] hover:border-primary/60",
+                      "shadow-[0_0_18px_-6px_rgba(39,134,95,0.45)]",
+                      "disabled:opacity-30 disabled:cursor-not-allowed",
+                    )}
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    PNG
+                  </button>
+                </div>
+              )}
+              <div className="rounded-sm bg-muted/30 border border-foreground/[0.06] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-foreground/55">
+                Arraste o divisor pra comparar — arraste a opacidade pra sobrepor
+              </div>
+              <div className="w-full rounded-lg border border-primary/20 bg-primary/[0.04] px-3 py-2 text-[10.5px] leading-snug text-foreground/70">
+                <span className="font-semibold text-primary mr-1">Procreate:</span>
+                pressione e segure o stencil acima, escolha <span className="font-medium text-foreground/90">Copiar</span> e cole direto no Procreate pra editar.
+              </div>
             </div>
 
             <motion.div
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="absolute top-4 right-4 z-20"
+              className="absolute top-5 right-5 z-20"
             >
-              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 border border-primary/25 text-[11px] font-semibold text-primary shadow-[0_0_16px_rgba(52,211,153,0.15)]">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                Stencil gerado
+              <span className="flex items-center gap-2 px-3 py-1.5 border border-primary/30 bg-card/70 backdrop-blur-sm text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+                <Zap className="w-3 h-3" />
+                Qualidade alta
               </span>
             </motion.div>
           </motion.div>

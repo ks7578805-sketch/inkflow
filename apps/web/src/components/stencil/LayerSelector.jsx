@@ -36,7 +36,7 @@ export default function LayerSelector({ value, onChange }) {
             className={cn(
               "flex-1 flex flex-col items-center py-2 rounded-lg border text-[10px] font-semibold transition-all",
               value === lvl.value
-                ? "border-primary bg-primary/10 text-primary shadow-[0_0_8px_rgba(52,211,153,0.15)]"
+                ? "border-primary bg-primary/10 text-primary shadow-[0_0_8px_rgba(39,134,95,0.15)]"
                 : "border-border/30 bg-muted/20 text-muted-foreground hover:border-border/60 hover:text-foreground"
             )}
           >

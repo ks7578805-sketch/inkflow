@@ -47,7 +47,7 @@ export default function ContrastPreview({ image, value, onChange }) {
           <div
             className={cn(
               "relative rounded-lg overflow-hidden border transition-all",
-              showPreview ? "border-primary/30 shadow-[0_0_10px_rgba(52,211,153,0.1)]" : "border-border/20"
+              showPreview ? "border-primary/30 shadow-[0_0_10px_rgba(39,134,95,0.1)]" : "border-border/20"
             )}
             style={{ aspectRatio: "4/3" }}
           >

@@ -1,113 +1,154 @@
-export const MOCK_CLIENTS = [
+// Reusable stage color map — covers dot/glow needs.
+// `corEtiqueta` on a client overrides the stage dot color — preparing the WhatsApp
+// label-sync feature where a client carries the color of their WhatsApp tag.
+export const STAGES = [
   {
-    id: 1, name: "Lucas Mendes", phone: "+55 11 99999-1234", ig: "@lucasm.ink",
-    email: "lucas.mendes@gmail.com", birthday: "1992-03-15",
-    sessions: 6, total: 4800, lastSession: "12 Mai 2026", nextSession: "28 Mai 2026",
-    vip: true, healing: false, activeProject: true, noReturn: false, isNew: false,
-    artist: "Rafael Ink", style: "Japanese",
-    tags: ["Projeto ativo"],
-    notes: "Sem alergias conhecidas. Prefere sessões pela manhã. Sleeve japonês em andamento.",
-    photo: null,
+    id: "interesse",
+    label: "Interesse",
+    dot: "#9ca3af",
+    glow: "rgba(156,163,175,0.18)",
   },
   {
-    id: 2, name: "Ana Beatriz", phone: "+55 11 98888-5678", ig: "@anab.tattoo",
-    email: "ana.beatriz@outlook.com", birthday: "1995-07-22",
-    sessions: 3, total: 2400, lastSession: "20 Mai 2026", nextSession: "02 Jun 2026",
-    vip: false, healing: true, activeProject: false, noReturn: false, isNew: false,
-    artist: "Marta Velez", style: "Fineline",
-    tags: ["Em healing"],
-    notes: "Cicatrização um pouco lenta. Usar pomada indicada. Retornar em 30 dias para avaliação.",
-    photo: null,
+    id: "agendado",
+    label: "Agendado",
+    dot: "#3b82f6",
+    glow: "rgba(59,130,246,0.22)",
   },
   {
-    id: 3, name: "Pedro Oliveira", phone: "+55 11 97777-9012", ig: "@pedroolv",
-    email: "pedro.olv@gmail.com", birthday: "1989-11-05",
-    sessions: 4, total: 3500, lastSession: "10 Mai 2026", nextSession: "30 Mai 2026",
-    vip: false, healing: false, activeProject: true, noReturn: false, isNew: false,
-    artist: "Rafael Ink", style: "Blackwork",
-    tags: ["Sessão futura"],
-    notes: "Projeto de costas em desenvolvimento. Precisa de 2 sessões mais.",
-    photo: null,
+    id: "emAndamento",
+    label: "Em andamento",
+    dot: "#f59e0b",
+    glow: "rgba(245,158,11,0.22)",
   },
   {
-    id: 4, name: "Marina Santos", phone: "+55 11 96666-3456", ig: "@marinasantos",
-    email: "marina.s@gmail.com", birthday: "1998-01-30",
-    sessions: 2, total: 1200, lastSession: "Jan 2026", nextSession: "—",
-    vip: false, healing: false, activeProject: false, noReturn: true, isNew: false,
-    artist: "Camila Torres", style: "Lettering",
-    tags: ["Sem retorno"],
-    notes: "Última visita há mais de 4 meses. Considerar reativação.",
-    photo: null,
+    id: "concluido",
+    label: "Concluído",
+    dot: "#06b6d4",
+    glow: "rgba(6,182,212,0.22)",
   },
   {
-    id: 5, name: "Ricardo Lima", phone: "+55 11 95555-7890", ig: "@ricardoink",
-    email: "ricardo.lima@empresa.com", birthday: "1985-06-18",
-    sessions: 8, total: 8200, lastSession: "18 Mai 2026", nextSession: "A definir",
-    vip: true, healing: false, activeProject: false, noReturn: false, isNew: false,
-    artist: "Rafael Ink", style: "Neo Tradicional",
-    tags: ["VIP"],
-    notes: "Cliente de alto ticket. Agenda esporadicamente mas sempre grandes projetos.",
-    photo: null,
-  },
-  {
-    id: 6, name: "Juliana Costa", phone: "+55 11 94444-2345", ig: "@jucosta",
-    email: "juliana.costa@gmail.com", birthday: "2000-09-12",
-    sessions: 1, total: 600, lastSession: "22 Mai 2026", nextSession: "05 Jun 2026",
-    vip: false, healing: true, activeProject: false, noReturn: false, isNew: true,
-    artist: "Marta Velez", style: "Realismo",
-    tags: ["Em healing", "Novo"],
-    notes: "Primeira tatuagem. Muito cuidadosa com aftercare. Acompanhar cicatrização.",
-    photo: null,
-  },
-  {
-    id: 7, name: "Thiago Rocha", phone: "+55 11 93333-6789", ig: "@thiagorocha",
-    email: "thiago.r@gmail.com", birthday: "1993-04-27",
-    sessions: 5, total: 3900, lastSession: "05 Mai 2026", nextSession: "15 Jun 2026",
-    vip: false, healing: false, activeProject: true, noReturn: false, isNew: false,
-    artist: "João Lucas", style: "Geométrico",
-    tags: ["Sessão futura", "Projeto ativo"],
-    notes: "Sleeve geométrico. Muito detalhista, aprova o stencil antes sempre.",
-    photo: null,
-  },
-  {
-    id: 8, name: "Fernanda Silva", phone: "+55 11 92222-0123", ig: "@fesilva.ink",
-    email: "fer.silva@hotmail.com", birthday: "1991-12-03",
-    sessions: 2, total: 1800, lastSession: "Nov 2025", nextSession: "—",
-    vip: false, healing: false, activeProject: false, noReturn: true, isNew: false,
-    artist: "Camila Torres", style: "Aquarela",
-    tags: ["Sem retorno"],
-    notes: "Sumiu depois de 2 sessões. Tentar reengajamento.",
-    photo: null,
+    id: "pago",
+    label: "Pago",
+    dot: "#1db884",
+    glow: "rgba(29,184,132,0.25)",
   },
 ];
 
-export const FILTERS = [
-  { id: "all", label: "Todos" },
-  { id: "future", label: "Sessão futura" },
-  { id: "healing", label: "Em healing" },
-  { id: "project", label: "Projeto ativo" },
-  { id: "vip", label: "VIP" },
-  { id: "noreturn", label: "Sem retorno" },
-  { id: "new", label: "Novos" },
-];
+export const STAGE_BY_ID = Object.fromEntries(STAGES.map((s) => [s.id, s]));
 
-export function applyFilter(clients, filter) {
-  switch (filter) {
-    case "future": return clients.filter(c => c.nextSession !== "—" && c.nextSession !== "A definir");
-    case "healing": return clients.filter(c => c.healing);
-    case "project": return clients.filter(c => c.activeProject);
-    case "vip": return clients.filter(c => c.vip);
-    case "noreturn": return clients.filter(c => c.noReturn);
-    case "new": return clients.filter(c => c.isNew);
-    default: return clients;
-  }
+export function getClientDotColor(client) {
+  if (client?.corEtiqueta) return client.corEtiqueta;
+  return STAGE_BY_ID[client?.estagio]?.dot ?? "#6b7280";
 }
 
-export const TAG_COLORS = {
-  "VIP": "bg-amber-500/15 text-amber-400 border-amber-500/25",
-  "Sessão futura": "bg-primary/15 text-primary border-primary/25",
-  "Em healing": "bg-rose-500/15 text-rose-400 border-rose-500/25",
-  "Projeto ativo": "bg-violet-500/15 text-violet-400 border-violet-500/25",
-  "Sem retorno": "bg-muted/60 text-muted-foreground border-border",
-  "Novo": "bg-blue-500/15 text-blue-400 border-blue-500/25",
+// Builds a wa.me link from a phone number — strips anything that isn't a digit
+// so it works with the E.164 mock entries ("+5511987654321" → "5511987654321").
+export function whatsappUrl(phone = "") {
+  const digits = phone.replace(/\D+/g, "");
+  if (!digits) return null;
+  return `https://wa.me/${digits}`;
+}
+
+export function getInitials(name = "") {
+  const parts = name.trim().split(/\s+/);
+  if (!parts[0]) return "—";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+const today = new Date();
+const d = (offset) => {
+  const next = new Date(today);
+  next.setDate(today.getDate() + offset);
+  const y = next.getFullYear();
+  const m = String(next.getMonth() + 1).padStart(2, "0");
+  const day = String(next.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 };
+
+// Field contract (matches the future API):
+//   id, nome, estilo, estagio, valor, proximaSessao, whatsapp, corEtiqueta?,
+//   createdAt, depositoPago?, sessoesFeitas?, sessoesTotal?
+export const MOCK_CLIENTS = [
+  // Interesse
+  { id: "c01", nome: "Rafaela Souza", estilo: "Aquarela", estagio: "interesse", valor: 1200, proximaSessao: null, whatsapp: "+5511987654321", createdAt: d(-4) },
+  { id: "c02", nome: "Bruno Teixeira", estilo: "Blackwork", estagio: "interesse", valor: 900, proximaSessao: null, whatsapp: "+5511996541230", createdAt: d(-2) },
+  { id: "c03", nome: "Luana Ferreira", estilo: "Fine Line", estagio: "interesse", valor: 600, proximaSessao: null, whatsapp: "+5511992134568", createdAt: d(-18) },
+  { id: "c04", nome: "Diego Nunes", estilo: "Japonês", estagio: "interesse", valor: 2400, proximaSessao: d(14), whatsapp: "+5511933221144", createdAt: d(-7) },
+
+  // Agendado
+  { id: "c05", nome: "Lucas Mendes", estilo: "Japonês", estagio: "agendado", valor: 1500, proximaSessao: d(2), whatsapp: "+5511987112233", createdAt: d(-12), depositoPago: 500 },
+  { id: "c06", nome: "Ana Beatriz Lima", estilo: "Fine Line", estagio: "agendado", valor: 800, proximaSessao: d(4), whatsapp: "+5511944556677", corEtiqueta: "#a855f7", createdAt: d(-9), depositoPago: 300 },
+  { id: "c07", nome: "Mariana Lopes", estilo: "Lettering", estagio: "agendado", valor: 450, proximaSessao: d(6), whatsapp: "+5511933445566", createdAt: d(-15), depositoPago: 0 },
+  { id: "c08", nome: "Pedro Oliveira", estilo: "Blackwork", estagio: "agendado", valor: 1800, proximaSessao: d(1), whatsapp: "+5511988776655", createdAt: d(-6), depositoPago: 600 },
+  { id: "c09", nome: "Juliana Costa", estilo: "Realismo", estagio: "agendado", valor: 2200, proximaSessao: d(8), whatsapp: "+5511955443322", createdAt: d(-3), depositoPago: 800 },
+
+  // Em andamento
+  { id: "c10", nome: "Camila Gomes", estilo: "Aquarela", estagio: "emAndamento", valor: 3200, proximaSessao: d(3), whatsapp: "+5511922113344", createdAt: d(-21), depositoPago: 1200, sessoesFeitas: 2, sessoesTotal: 4 },
+  { id: "c11", nome: "Eduardo Martins", estilo: "Japonês", estagio: "emAndamento", valor: 4800, proximaSessao: d(10), whatsapp: "+5511966778899", corEtiqueta: "#ec4899", createdAt: d(-28), depositoPago: 2400, sessoesFeitas: 3, sessoesTotal: 6 },
+  { id: "c12", nome: "Patricia Alves", estilo: "Realismo", estagio: "emAndamento", valor: 5500, proximaSessao: d(5), whatsapp: "+5511911223344", createdAt: d(-35), depositoPago: 2000, sessoesFeitas: 4, sessoesTotal: 5 },
+
+  // Concluído
+  { id: "c13", nome: "Rodrigo Cunha", estilo: "Old School", estagio: "concluido", valor: 1400, proximaSessao: null, whatsapp: "+5511977889900", createdAt: d(-30), depositoPago: 700 },
+  { id: "c14", nome: "Fernanda Dias", estilo: "Fine Line", estagio: "concluido", valor: 700, proximaSessao: null, whatsapp: "+5511944332211", createdAt: d(-22), depositoPago: 700 },
+  { id: "c15", nome: "Thiago Barros", estilo: "Tribal", estagio: "concluido", valor: 950, proximaSessao: null, whatsapp: "+5511988991122", createdAt: d(-26), depositoPago: 0 },
+
+  // Pago
+  { id: "c16", nome: "Isabela Rocha", estilo: "Aquarela", estagio: "pago", valor: 1800, proximaSessao: null, whatsapp: "+5511933556677", createdAt: d(-45), depositoPago: 1800 },
+  { id: "c17", nome: "Gustavo Pinto", estilo: "Blackwork", estagio: "pago", valor: 1100, proximaSessao: null, whatsapp: "+5511977665544", createdAt: d(-38), depositoPago: 1100 },
+  { id: "c18", nome: "Clara Monteiro", estilo: "Geométrico", estagio: "pago", valor: 1300, proximaSessao: null, whatsapp: "+5511944778899", createdAt: d(-51), depositoPago: 1300 },
+  { id: "c19", nome: "Felipe Azevedo", estilo: "Realismo", estagio: "pago", valor: 2100, proximaSessao: null, whatsapp: "+5511966554433", createdAt: d(-44), depositoPago: 2100 },
+];
+
+export function getClientsByStage(stageId, clients = MOCK_CLIENTS) {
+  return clients.filter((c) => c.estagio === stageId);
+}
+
+// ── Date + aggregate helpers used by hero KPIs and cards ────────────────────
+export function daysBetween(fromStr, ref = new Date()) {
+  if (!fromStr) return null;
+  const [y, m, day] = fromStr.split("-").map(Number);
+  const from = new Date(y, m - 1, day);
+  const ms = ref - from;
+  return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
+
+export function isWithinDays(dateStr, days) {
+  if (!dateStr) return false;
+  const diff = -daysBetween(dateStr);
+  return diff >= 0 && diff <= days;
+}
+
+// CRM-level KPIs for the hero bar.
+export function getCrmKPIs(clients = MOCK_CLIENTS) {
+  const pipelineValue = clients
+    .filter((c) => c.estagio !== "pago")
+    .reduce((acc, c) => acc + (c.valor || 0), 0);
+
+  const upcomingSessions = clients.filter((c) =>
+    isWithinDays(c.proximaSessao, 7),
+  ).length;
+
+  const inProgress = clients.filter((c) => c.estagio === "emAndamento").length;
+
+  const paid = clients.filter((c) => c.estagio === "pago").length;
+  const conversionRate = clients.length > 0 ? paid / clients.length : 0;
+
+  const totalClients = clients.length;
+
+  return {
+    pipelineValue,
+    upcomingSessions,
+    inProgress,
+    conversionRate,
+    paid,
+    totalClients,
+  };
+}
+
+// Per-stage column summary.
+export function getStageSummary(stageId, clients = MOCK_CLIENTS) {
+  const list = getClientsByStage(stageId, clients);
+  const value = list.reduce((acc, c) => acc + (c.valor || 0), 0);
+  return { count: list.length, value };
+}

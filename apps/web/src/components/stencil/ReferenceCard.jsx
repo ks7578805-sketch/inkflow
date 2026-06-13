@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Upload, X, RefreshCw, ImageIcon, FileImage, CheckCircle2, Maximize2, Clipboard } from "lucide-react";
+import { Upload, X, RefreshCw, FileImage, CheckCircle2, Maximize2, Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { formatFileSize } from "@/hooks/useImageUpload";
 import { motion, AnimatePresence } from "framer-motion";
+import SectionBadge from "./SectionBadge";
 
 export default function ReferenceCard({
   image,
@@ -36,32 +37,23 @@ export default function ReferenceCard({
 
       <div
         className={cn(
-          "bg-card rounded-xl border transition-all duration-300",
+          "relative bg-card/95 rounded-md border transition-all duration-300 overflow-hidden flex-shrink-0",
+          "shadow-[0_8px_28px_-16px_rgba(0,0,0,0.7)]",
           isDragOver
-            ? "border-primary/60 shadow-[0_0_24px_rgba(52,211,153,0.15)] bg-primary/5"
+            ? "border-primary/55 bg-primary/[0.03]"
             : image
-              ? "border-primary/20 shadow-[0_0_12px_rgba(52,211,153,0.06)]"
-              : "border-border/50 hover:border-border"
+              ? "border-primary/25"
+              : "border-foreground/[0.07] hover:border-foreground/[0.12]"
         )}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}
         onDrop={onDrop}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-border/30">
-          <div className="flex items-center gap-2">
-            <div className={cn(
-              "w-5 h-5 rounded-md flex items-center justify-center",
-              image ? "bg-primary/20" : "bg-muted/40"
-            )}>
-              <ImageIcon className={cn("w-3 h-3", image ? "text-primary" : "text-muted-foreground/50")} />
-            </div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Referência
-            </span>
-          </div>
+        {/* Numbered header */}
+        <div className="relative">
+          <SectionBadge step="1" title="Referência" hint="Imagem base do stencil" />
           {image && (
-            <span className="flex items-center gap-1 text-[10px] font-medium text-primary">
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1 text-[10px] font-medium text-primary">
               <CheckCircle2 className="w-3 h-3" />
               Carregada
             </span>

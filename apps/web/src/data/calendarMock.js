@@ -77,10 +77,139 @@ export function sessionDuration(session) {
   return (eh * 60 + em - (sh * 60 + sm)) / 60;
 }
 
-export const getSessionsByDate = (dateStr) =>
-  MOCK_SESSIONS.filter((s) => s.data === dateStr).sort((a, b) =>
-    a.horarioInicio.localeCompare(b.horarioInicio),
-  );
+export function getInitials(name = "") {
+  const parts = name.trim().split(/\s+/);
+  if (!parts[0]) return "—";
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+// Deterministic gradient pick for an avatar (Tailwind classes).
+const AVATAR_GRADIENTS = [
+  "from-emerald-500/35 to-emerald-700/40 text-emerald-100",
+  "from-violet-500/35 to-violet-700/40 text-violet-100",
+  "from-sky-500/35 to-sky-700/40 text-sky-100",
+  "from-amber-500/30 to-amber-700/40 text-amber-100",
+  "from-rose-500/30 to-rose-700/40 text-rose-100",
+  "from-teal-500/35 to-teal-700/40 text-teal-100",
+  "from-indigo-500/35 to-indigo-700/40 text-indigo-100",
+];
+
+export function avatarGradient(seed = "") {
+  let h = 0;
+  for (let i = 0; i < seed.length; i += 1) {
+    h = (h * 31 + seed.charCodeAt(i)) >>> 0;
+  }
+  return AVATAR_GRADIENTS[h % AVATAR_GRADIENTS.length];
+}
+
+// Returns the session merged with any local override (mock-only, in-memory state).
+export function applyOverride(session, overrides) {
+  if (!overrides || !overrides.size) return session;
+  const ov = overrides.get(session.id);
+  return ov ? { ...session, ...ov } : session;
+}
+
+// ── Aggregate helpers for the stats bar ────────────────────────────────────────
+export function getMonthStats(cursor, overrides) {
+  ensureIndex();
+  const year = cursor.getFullYear();
+  const month = String(cursor.getMonth() + 1).padStart(2, "0");
+  const prefix = `${year}-${month}-`;
+
+  let total = 0;
+  let active = 0;
+  let cancelled = 0;
+  let confirmed = 0;
+  let revenue = 0;
+  let busyHours = 0;
+  const daysWithSessions = new Set();
+
+  for (const [date, list] of SESSIONS_BY_DATE) {
+    if (!date.startsWith(prefix)) continue;
+    for (const raw of list) {
+      const s = applyOverride(raw, overrides);
+      total += 1;
+      if (s.status === "cancelado") {
+        cancelled += 1;
+        continue;
+      }
+      active += 1;
+      if (s.status === "confirmado") confirmed += 1;
+      revenue += s.depositoTotal || 0;
+      busyHours += sessionDuration(s);
+      daysWithSessions.add(date);
+    }
+  }
+
+  const daysInMonth = new Date(year, cursor.getMonth() + 1, 0).getDate();
+  const businessHoursPerDay = 11; // 09:00–20:00 — must match TIMELINE_* in DayDetailPanel
+  const capacity = daysInMonth * businessHoursPerDay;
+  const occupancy = capacity > 0 ? busyHours / capacity : 0;
+
+  return {
+    total,
+    active,
+    cancelled,
+    confirmed,
+    revenue,
+    busyHours,
+    occupancy,
+    daysWithSessions: daysWithSessions.size,
+  };
+}
+
+export function getNextSession(reference = new Date()) {
+  ensureIndex();
+  const refDate = format2(reference);
+  const refTime = String(reference.getHours()).padStart(2, "0") + ":" +
+    String(reference.getMinutes()).padStart(2, "0");
+
+  let best = null;
+  for (const [date, list] of SESSIONS_BY_DATE) {
+    if (date < refDate) continue;
+    for (const s of list) {
+      if (s.status === "cancelado") continue;
+      if (date === refDate && s.horarioInicio < refTime) continue;
+      if (!best || date < best.data || (date === best.data && s.horarioInicio < best.horarioInicio)) {
+        best = s;
+      }
+    }
+  }
+  return best;
+}
+
+function format2(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+// Unique artist list (for the filter dropdown).
+export function getArtists() {
+  return Array.from(new Set(MOCK_SESSIONS.map((s) => s.artistaNome))).sort();
+}
+
+// Pre-built index — avoids O(N) filter on every calendar cell render.
+const EMPTY_SESSIONS = Object.freeze([]);
+const SESSIONS_BY_DATE = new Map();
+function ensureIndex() {
+  if (SESSIONS_BY_DATE.size) return;
+  for (const s of MOCK_SESSIONS) {
+    const arr = SESSIONS_BY_DATE.get(s.data);
+    if (arr) arr.push(s);
+    else SESSIONS_BY_DATE.set(s.data, [s]);
+  }
+  for (const arr of SESSIONS_BY_DATE.values()) {
+    arr.sort((a, b) => a.horarioInicio.localeCompare(b.horarioInicio));
+  }
+}
+
+export const getSessionsByDate = (dateStr) => {
+  ensureIndex();
+  return SESSIONS_BY_DATE.get(dateStr) ?? EMPTY_SESSIONS;
+};
 
 // Session data — all dates dynamic relative to new Date().
 // Fields match the future API contract: id, clienteNome, estilo, horarioInicio,

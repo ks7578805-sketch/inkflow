@@ -13,9 +13,9 @@ export default function Topbar({ title, subtitle }) {
 
   return (
     <header className="h-14 md:h-[60px] border-b border-white/[0.06] bg-[#080a0d]/80 backdrop-blur-xl flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
-      <div>
-        <h1 className="text-[15px] md:text-base font-semibold text-white tracking-tight">{title}</h1>
-        {subtitle && <p className="text-[10px] text-white/30 hidden sm:block mt-0.5">{subtitle}</p>}
+      <div className="leading-tight">
+        <h1 className="text-[15px] md:text-base font-bold text-white tracking-tight">{title}</h1>
+        {subtitle && <p className="text-[10px] text-white/35 hidden sm:block mt-0.5 uppercase tracking-[0.16em]">{subtitle}</p>}
       </div>
 
       <div className="flex items-center gap-2 md:gap-2.5">

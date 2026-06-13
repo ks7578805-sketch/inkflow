@@ -1,6 +1,15 @@
 import { Injectable, NotFoundException, StreamableFile } from '@nestjs/common';
 import type { AuthUser } from '../auth/auth.types';
-import type { CreateStencilGenerationRequest, SaveStencilVersionRequest, StencilAssetDto, StencilGenerationDto, StencilPrecheckAnalysis, StencilVersionDto, StencilVersionMetadata } from '@inkflow/contracts';
+import type {
+  CreateStencilGenerationRequest,
+  SaveStencilVersionRequest,
+  StencilAssetDto,
+  StencilGenerationDto,
+  StencilPrecheckAnalysis,
+  StencilProvider,
+  StencilVersionDto,
+  StencilVersionMetadata,
+} from '@inkflow/contracts';
 import type { Prisma, StencilGeneration, StencilVariantKind } from '@prisma/client';
 import PDFDocument = require('pdfkit');
 import sharp = require('sharp');
@@ -70,13 +79,14 @@ export class StencilService {
         layerCount: payload.layerCount,
         lineColor: payload.lineColor,
         outputSize: payload.outputSize,
+        provider: payload.provider ?? 'google',
         status: 'PENDING',
       },
     });
 
     try {
       const assetBuffer = await this.stencilStorage.readBuffer(asset.storagePath);
-      const analysis = await this.stencilAiService.analyzeReferenceImage(assetBuffer, asset.mimeType);
+      const analysis = await this.stencilAiService.analyzeReferenceImage(assetBuffer, asset.mimeType, payload.provider ?? 'google');
       const variants = await this.stencilAiService.generateVariants(assetBuffer, asset.mimeType, payload, analysis);
 
       const createdVersions = [] as Prisma.StencilVersionUncheckedCreateInput[];
@@ -309,6 +319,7 @@ export class StencilService {
       layerCount: generation.layerCount,
       lineColor: generation.lineColor,
       outputSize: generation.outputSize as CreateStencilGenerationRequest['outputSize'],
+      provider: ((generation as unknown as { provider?: StencilProvider }).provider ?? 'google') as StencilProvider,
       analysis: (generation.analysisJson as unknown as StencilPrecheckAnalysis | null) ?? null,
       savedVersionId: generation.savedVersionId,
       createdAt: generation.createdAt.toISOString(),
@@ -342,7 +353,7 @@ export class StencilService {
       height: version.height,
       publicUrl: version.publicUrl,
       metadata: (version.metadataJson as unknown as StencilVersionMetadata) ?? {
-        preset: 'fine',
+        preset: 'fineline',
         variant: version.kind as StencilVariantKind,
         outputSize: 'a4',
         lineThickness: 50,
